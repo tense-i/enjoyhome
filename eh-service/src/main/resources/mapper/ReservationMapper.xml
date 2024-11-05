@@ -34,6 +34,11 @@
             update_by   = #{updateBy}
         where id = #{id}
     </update>
+    <update id="updateReservationStatus" parameterType="java.time.LocalDateTime">
+        update reservation
+        set status = 3
+        where status = 0 and time < #{minusDays}
+    </update>
 
     <delete id="deleteById" parameterType="java.lang.Long">
         delete

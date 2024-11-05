@@ -8,12 +8,11 @@ import org.springframework.context.annotation.Bean;
 import org.springframework.context.annotation.Configuration;
 
 /**
- *
  * @author xuxueli 2017-04-28
  */
 @Configuration
 public class XxlJobConfig {
-    private Logger logger = LoggerFactory.getLogger(XxlJobConfig.class);
+    private final Logger logger = LoggerFactory.getLogger(XxlJobConfig.class);
 
     @Value("${xxl.job.admin.addresses}")
     private String adminAddresses;
@@ -24,6 +23,8 @@ public class XxlJobConfig {
     @Value("${xxl.job.executor.port}")
     private int port;
 
+    @Value("${xxl.job.accessToken}")
+    private String accessToken;
 
     @Bean
     public XxlJobSpringExecutor xxlJobExecutor() {
@@ -32,6 +33,7 @@ public class XxlJobConfig {
         xxlJobSpringExecutor.setAdminAddresses(adminAddresses);
         xxlJobSpringExecutor.setAppname(appname);
         xxlJobSpringExecutor.setPort(port);
+        xxlJobSpringExecutor.setAccessToken(accessToken);
         return xxlJobSpringExecutor;
     }
 

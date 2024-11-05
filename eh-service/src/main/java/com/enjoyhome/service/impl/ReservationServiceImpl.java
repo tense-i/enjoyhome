@@ -267,6 +267,11 @@ public class ReservationServiceImpl implements ReservationService {
         }
     }
 
+    /**
+     * xxl-job 定时任务，更新过期预约状态(每一小时的1分、31分执行)
+     *
+     * @param now
+     */
     @Override
     public void updateReservationStatus(LocalDateTime now) {
         reservationMapper.updateReservationStatus(now);

@@ -5,7 +5,6 @@ import com.enjoyhome.vo.TimeCountVo;
 import com.github.pagehelper.Page;
 import org.apache.ibatis.annotations.Mapper;
 import org.apache.ibatis.annotations.Param;
-import org.apache.ibatis.annotations.Update;
 
 import java.time.LocalDateTime;
 import java.util.List;
@@ -56,7 +55,11 @@ public interface ReservationMapper {
                                                   @Param("endTime") LocalDateTime endTime,
                                                   @Param("updateBy") Long updateBy);
 
-    @Update("update reservation set status = 3 where status = 0 and time <= #{minusDays}")
+    /**
+     * xxl-job 定时任务，更新过期预约状态(每一小时的1分、31分执行)
+     *
+     * @param minusDays
+     */
     void updateReservationStatus(LocalDateTime minusDays);
 
 }
