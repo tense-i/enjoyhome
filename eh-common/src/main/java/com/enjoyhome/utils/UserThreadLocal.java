@@ -5,8 +5,8 @@ import com.enjoyhome.base.BaseVo;
 import lombok.extern.slf4j.Slf4j;
 
 /**
- * subjectContent.java
- *  用户主体对象
+ * 为每个线程提供一个独立的用户信息副本
+ * 用户主体对象
  */
 @Slf4j
 public class UserThreadLocal {
@@ -28,6 +28,7 @@ public class UserThreadLocal {
 
         subjectThreadLocal.set(subject);
     }
+
     // 提供线程局部变量get方法
     public static String getSubject() {
 
@@ -39,6 +40,7 @@ public class UserThreadLocal {
 
         subjectThreadLocal.remove();
     }
+
     private static final ThreadLocal<Long> LOCAL = new ThreadLocal<>();
 
     private UserThreadLocal() {
@@ -70,6 +72,7 @@ public class UserThreadLocal {
 
     /**
      * 从当前线程中获取前端用户id
+     *
      * @return 用户id
      */
     public static Long getUserId() {
@@ -78,6 +81,7 @@ public class UserThreadLocal {
 
     /**
      * 从当前线程中获取前端后端id
+     *
      * @return 用户id
      */
     public static Long getMgtUserId() {
@@ -86,7 +90,7 @@ public class UserThreadLocal {
             return null;
         }
         BaseVo baseVo = JSONObject.parseObject(subject, BaseVo.class);
-        return baseVo.getId() ;
+        return baseVo.getId();
     }
 
 

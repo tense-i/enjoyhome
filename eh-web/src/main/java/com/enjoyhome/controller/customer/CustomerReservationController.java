@@ -31,9 +31,19 @@ public class CustomerReservationController extends BaseController {
     @GetMapping("/countByTime")
     @ApiOperation("查询每个时间段剩余预约次数")
     public ResponseResult countReservationsForEachTimeWithinTimeRange(@RequestParam(required = false) Long time) {
-        List<TimeCountVo> list = reservationService.countReservationsForEachTimeWithinTimeRange(LocalDateTimeUtil.of(time));
+        List<TimeCountVo> list =
+                reservationService.countReservationsForEachTimeWithinTimeRange(LocalDateTimeUtil.of(time));
         return success(list);
     }
+
+    @GetMapping("/countByTime")
+    @ApiOperation("查询每个时间段剩余预约次数")
+    public ResponseResult countReservationsForEachTimeWithinTimeRange2(@RequestParam(required = false) Long time) {
+        List<TimeCountVo> list =
+                reservationService.countReservationsForEachTimeWithinTimeRange(LocalDateTimeUtil.of(time));
+        return success(list);
+    }
+
 
     @GetMapping("/cancelled-count")
     @ApiOperation("查询取消预约数量")
@@ -52,10 +62,12 @@ public class CustomerReservationController extends BaseController {
 
     @GetMapping
     @ApiOperation("查询所有预约")
-    public ResponseResult<List<ReservationVo>> findAll(@RequestParam(required = false) String mobile, @RequestParam(required = false) Long time) {
+    public ResponseResult<List<ReservationVo>> findAll(@RequestParam(required = false) String mobile,
+                                                       @RequestParam(required = false) Long time) {
         List<ReservationVo> reservationVoList = reservationService.findAll(mobile, LocalDateTimeUtil.of(time));
         return success(reservationVoList);
     }
+
     /*
      *分页查询增加预约人姓名，手机号，状态，类型的查询条件
      */
@@ -63,13 +75,18 @@ public class CustomerReservationController extends BaseController {
     @ApiOperation("分页查询预约")
     @ApiImplicitParams({
             @ApiImplicitParam(name = "pageNum", value = "页码", required = true, dataType = "int", paramType = "query"),
-            @ApiImplicitParam(name = "pageSize", value = "每页数量", required = true, dataType = "int", paramType = "query"),
-            @ApiImplicitParam(name = "name", value = "预约人姓名", required = false, dataType = "String", paramType = "query"),
-            @ApiImplicitParam(name = "phone", value = "手机号", required = false, dataType = "String", paramType = "query"),
+            @ApiImplicitParam(name = "pageSize", value = "每页数量", required = true, dataType = "int", paramType =
+                    "query"),
+            @ApiImplicitParam(name = "name", value = "预约人姓名", required = false, dataType = "String", paramType =
+                    "query"),
+            @ApiImplicitParam(name = "phone", value = "手机号", required = false, dataType = "String", paramType =
+                    "query"),
             @ApiImplicitParam(name = "status", value = "状态", required = false, dataType = "int", paramType = "query"),
             @ApiImplicitParam(name = "type", value = "类型", required = false, dataType = "int", paramType = "query"),
-            @ApiImplicitParam(name = "startTime", value = "开始时间", required = false, dataType = "long", paramType = "query"),
-            @ApiImplicitParam(name = "endTime", value = "结束时间", required = false, dataType = "long", paramType = "query")
+            @ApiImplicitParam(name = "startTime", value = "开始时间", required = false, dataType = "long", paramType =
+                    "query"),
+            @ApiImplicitParam(name = "endTime", value = "结束时间", required = false, dataType = "long", paramType =
+                    "query")
     })
     public ResponseResult<PageResponse<ReservationVo>> findByPage(@RequestParam(defaultValue = "1") int pageNum,
                                                                   @RequestParam(defaultValue = "10") int pageSize,
@@ -79,7 +96,9 @@ public class CustomerReservationController extends BaseController {
                                                                   @RequestParam(required = false) Integer type,
                                                                   @RequestParam(required = false) Long startTime,
                                                                   @RequestParam(required = false) Long endTime) {
-        PageResponse<ReservationVo> byPage = reservationService.findByPage(pageNum, pageSize, name, phone, status, type, ObjectUtil.isEmpty(startTime)? null : LocalDateTimeUtil.of(startTime), ObjectUtil.isEmpty(endTime)? null : LocalDateTimeUtil.of(endTime));
+        PageResponse<ReservationVo> byPage = reservationService.findByPage(pageNum, pageSize, name, phone, status,
+                type, ObjectUtil.isEmpty(startTime) ? null : LocalDateTimeUtil.of(startTime),
+                ObjectUtil.isEmpty(endTime) ? null : LocalDateTimeUtil.of(endTime));
         return success(byPage);
     }
 

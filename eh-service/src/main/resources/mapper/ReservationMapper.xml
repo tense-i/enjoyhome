@@ -101,15 +101,16 @@
         SELECT time, 6 - COUNT(*) AS count
         FROM reservation
         WHERE `time` BETWEEN #{startTime}
-          AND #{endTime}
+            AND #{endTime}
           and status != 2
         GROUP BY time
     </select>
 
     <select id="countCancelledReservationsWithinTimeRange" resultType="int">
-        SELECT COUNT(*) FROM reservation
+        SELECT COUNT(*)
+        FROM reservation
         WHERE update_time BETWEEN #{startTime} AND #{endTime}
-        AND status = 2
-        and update_by = #{updateBy}
+          AND status = 2 # Cancelled
+          and update_by = #{updateBy}
     </select>
 </mapper>
