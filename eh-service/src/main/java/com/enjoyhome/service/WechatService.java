@@ -4,6 +4,9 @@ import cn.hutool.json.JSONObject;
 
 import java.io.IOException;
 
+/**
+ * 微信服务
+ */
 public interface WechatService {
     /**
      * 获取openid

@@ -3,6 +3,7 @@ package com.enjoyhome.controller;
 import com.enjoyhome.base.PageResponse;
 import com.enjoyhome.base.ResponseResult;
 import com.enjoyhome.service.MemberService;
+import com.enjoyhome.vo.MemberVo;
 import io.swagger.annotations.Api;
 import io.swagger.annotations.ApiOperation;
 import lombok.extern.slf4j.Slf4j;

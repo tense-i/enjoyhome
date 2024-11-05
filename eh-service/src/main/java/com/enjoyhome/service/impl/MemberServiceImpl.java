@@ -6,14 +6,13 @@ import cn.hutool.json.JSONObject;
 import com.enjoyhome.base.PageResponse;
 import com.enjoyhome.constant.Constants;
 import com.enjoyhome.dto.UserLoginRequestDto;
+import com.enjoyhome.entity.Member;
 import com.enjoyhome.exception.BaseException;
+import com.enjoyhome.mapper.MemberMapper;
 import com.enjoyhome.properties.JwtTokenManagerProperties;
 import com.enjoyhome.service.*;
 import com.enjoyhome.utils.JwtUtil;
-import com.enjoyhome.vo.ContractVo;
-import com.enjoyhome.vo.LoginVo;
-import com.enjoyhome.vo.MemberElderVo;
-import com.enjoyhome.vo.OrderVo;
+import com.enjoyhome.vo.*;
 import com.github.pagehelper.Page;
 import com.github.pagehelper.PageHelper;
 import com.google.common.collect.Lists;
@@ -73,6 +72,7 @@ public class MemberServiceImpl implements MemberService {
             memberMapper.save(member);
             return;
         }
+        // 存在则更新为最新的member数据
         update(member);
     }
 
@@ -101,6 +101,7 @@ public class MemberServiceImpl implements MemberService {
         if (ObjectUtil.isNotEmpty(jsonObject.getInt("errcode"))) {
             throw new BaseException(jsonObject.getStr("errmsg"));
         }
+        // 提取openid
         String openId = jsonObject.getStr("openid");
 
         /*

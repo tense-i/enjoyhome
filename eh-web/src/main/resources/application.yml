@@ -96,11 +96,8 @@ enjoyhome:
       accessKeySecret: ${ALICLOUD_ACCESS_KEY_SECRET}
       bucketName: tensei
   wechat:
-    appId: wxa54e0997e8b6649e
-    appSecret: 9e4b693aa8cee71a9077e15dcac30b52
-  #  wechat:
-  #    appId: wxa37ad44a9d9ab836
-  #    appSecret: 85ef0e856bafed3eb55e279c3a48fa49
+    appId: ${WECHAT_APP_ID}
+    appSecret: ${WECHAT_APP_SECRET}
   aliyun:
     accessKeyId: ${ALICLOUD_ACCESS_KEY_ID}
     accessKeySecret: ${ALICLOUD_ACCESS_KEY_SECRET}

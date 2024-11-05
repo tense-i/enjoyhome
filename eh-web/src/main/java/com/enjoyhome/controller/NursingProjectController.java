@@ -31,7 +31,7 @@ public class NursingProjectController {
             @ApiParam(value = "状态", required = false)
             @RequestParam(value = "status", required = false) Integer status,
             @ApiParam(value = "页码", required = false)
-            @RequestParam(value = "page", required = false, defaultValue = "1") Integer page,
+            @RequestParam(value = "pageNum", required = false, defaultValue = "1") Integer page,
             @ApiParam(value = "每页数量", required = false)
             @RequestParam(value = "pageSize", required = false, defaultValue = "10") Integer size
     ) {

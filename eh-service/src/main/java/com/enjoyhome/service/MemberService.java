@@ -2,7 +2,9 @@ package com.enjoyhome.service;
 
 import com.enjoyhome.base.PageResponse;
 import com.enjoyhome.dto.UserLoginRequestDto;
+import com.enjoyhome.entity.Member;
 import com.enjoyhome.vo.LoginVo;
+import com.enjoyhome.vo.MemberVo;
 
 import java.io.IOException;
 

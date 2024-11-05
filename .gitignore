@@ -1,6 +1,7 @@
 # Compiled class file
 *.class
 
+config.env
 # Log file
 *.log
 *.imi
@@ -53,6 +54,7 @@ selenium-debug.log
 *.njsproj
 *.sln
 *.local
+*.env
 
 package-lock.json
 yarn.lock

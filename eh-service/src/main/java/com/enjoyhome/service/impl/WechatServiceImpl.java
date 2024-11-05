@@ -15,6 +15,9 @@ import java.util.Map;
 
 @Service
 @Slf4j
+/**
+ * 微信服务
+ */
 public class WechatServiceImpl implements WechatService {
 
     // 登录

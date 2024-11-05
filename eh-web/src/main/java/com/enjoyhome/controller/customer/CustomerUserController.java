@@ -2,7 +2,9 @@ package com.enjoyhome.controller.customer;
 
 import cn.hutool.core.date.LocalDateTimeUtil;
 import com.aliyun.iot20180120.Client;
-import com.aliyun.iot20180120.models.*;
+import com.aliyun.iot20180120.models.QueryDevicePropertyStatusRequest;
+import com.aliyun.iot20180120.models.QueryDevicePropertyStatusResponse;
+import com.aliyun.iot20180120.models.QueryDevicePropertyStatusResponseBody;
 import com.enjoyhome.base.PageResponse;
 import com.enjoyhome.base.ResponseResult;
 import com.enjoyhome.controller.BaseController;
@@ -111,5 +113,4 @@ public class CustomerUserController extends BaseController {
                         LocalDateTimeUtil.of(startTime), ObjectUtil.isEmpty(endTime) ? null :
                         LocalDateTimeUtil.of(endTime)));
     }
-
 }
