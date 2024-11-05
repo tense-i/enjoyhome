@@ -3,7 +3,6 @@ package com.enjoyhome.controller;
 import com.enjoyhome.base.PageResponse;
 import com.enjoyhome.base.ResponseResult;
 import com.enjoyhome.service.MemberService;
-import com.enjoyhome.vo.MemberVo;
 import io.swagger.annotations.Api;
 import io.swagger.annotations.ApiOperation;
 import lombok.extern.slf4j.Slf4j;
@@ -30,15 +29,16 @@ public class CustomerController {
     /**
      * 分页查询客户信息
      *
-     * @param pageNum 页码
+     * @param pageNum  页码
      * @param pageSize 每页数量
-     * @param phone 手机号
+     * @param phone    手机号
      * @param nickname 昵称
      * @return 分页结果
      */
     @ApiOperation(value = "分页查询客户信息", notes = "根据页码、每页数量、手机号、昵称分页查询客户信息")
     @GetMapping("page")
-    public ResponseResult<PageResponse<MemberVo>> page(Integer pageNum, Integer pageSize, String phone, String nickname) {
+    public ResponseResult<PageResponse<MemberVo>> page(Integer pageNum, Integer pageSize, String phone,
+                                                       String nickname) {
         PageResponse<MemberVo> pageResponse = memberService.page(pageNum, pageSize, phone, nickname);
         return ResponseResult.success(pageResponse);
     }
