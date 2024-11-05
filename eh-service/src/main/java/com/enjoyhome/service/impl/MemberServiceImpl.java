@@ -3,19 +3,20 @@ package com.enjoyhome.service.impl;
 import cn.hutool.core.map.MapUtil;
 import cn.hutool.core.util.ObjectUtil;
 import cn.hutool.json.JSONObject;
-import com.github.pagehelper.Page;
-import com.github.pagehelper.PageHelper;
-import com.google.common.collect.Lists;
 import com.enjoyhome.base.PageResponse;
 import com.enjoyhome.constant.Constants;
 import com.enjoyhome.dto.UserLoginRequestDto;
-import com.enjoyhome.entity.Member;
 import com.enjoyhome.exception.BaseException;
-import com.enjoyhome.mapper.MemberMapper;
 import com.enjoyhome.properties.JwtTokenManagerProperties;
 import com.enjoyhome.service.*;
 import com.enjoyhome.utils.JwtUtil;
-import com.enjoyhome.vo.*;
+import com.enjoyhome.vo.ContractVo;
+import com.enjoyhome.vo.LoginVo;
+import com.enjoyhome.vo.MemberElderVo;
+import com.enjoyhome.vo.OrderVo;
+import com.github.pagehelper.Page;
+import com.github.pagehelper.PageHelper;
+import com.google.common.collect.Lists;
 import lombok.extern.slf4j.Slf4j;
 import org.apache.commons.lang3.StringUtils;
 import org.springframework.stereotype.Service;
@@ -45,18 +46,20 @@ public class MemberServiceImpl implements MemberService {
 
 
     static ArrayList DEFAULT_NICKNAME_PREFIX = Lists.newArrayList(
-         "生活更美好",
-                    "大桔大利",
-                    "日富一日",
-                    "好柿开花",
-                    "柿柿如意",
-                    "一椰暴富",
-                    "大柚所为",
-                    "杨梅吐气",
-                    "天生荔枝"
-                    );
+            "生活更美好",
+            "大桔大利",
+            "日富一日",
+            "好柿开花",
+            "柿柿如意",
+            "一椰暴富",
+            "大柚所为",
+            "杨梅吐气",
+            "天生荔枝"
+    );
+
     /**
      * 新增
+     *
      * @param member 用户信息
      */
     @Override
@@ -64,7 +67,8 @@ public class MemberServiceImpl implements MemberService {
         //判断id是否存在，不存在则新增，否则是更新
         if (ObjectUtil.isEmpty(member.getId())) {
             //随机组装昵称，随机词组+手机号后4位
-            String nickName = DEFAULT_NICKNAME_PREFIX.get((int)(Math.random() * DEFAULT_NICKNAME_PREFIX.size())) + StringUtils.substring(member.getPhone(), 7);
+            String nickName =
+                    DEFAULT_NICKNAME_PREFIX.get((int) (Math.random() * DEFAULT_NICKNAME_PREFIX.size())) + StringUtils.substring(member.getPhone(), 7);
             member.setName(nickName);
             memberMapper.save(member);
             return;
@@ -100,9 +104,9 @@ public class MemberServiceImpl implements MemberService {
         String openId = jsonObject.getStr("openid");
 
         /*
-        * 3 根据openid从数据库查询用户
-        * 3.1 如果为新用户，此处返回为null
-        * 3.2 如果为已经登录过的老用户，此处返回为user对象 （包含openId,phone,unionId等字段）
+         * 3 根据openid从数据库查询用户
+         * 3.1 如果为新用户，此处返回为null
+         * 3.2 如果为已经登录过的老用户，此处返回为user对象 （包含openId,phone,unionId等字段）
          */
         Member member = getByOpenid(openId);
 
@@ -136,7 +140,8 @@ public class MemberServiceImpl implements MemberService {
                 .put(Constants.JWT_USERID, member.getId()).build();
         claims.put(Constants.JWT_USERNAME, member.getName());
         // 8 封装token，响应结果
-        String token = JwtUtil.createJWT(jwtTokenManagerProperties.getBase64EncodedSecretKey(), jwtTokenManagerProperties.getTtl(), claims);
+        String token = JwtUtil.createJWT(jwtTokenManagerProperties.getBase64EncodedSecretKey(),
+                jwtTokenManagerProperties.getTtl(), claims);
         LoginVo loginVO = new LoginVo();
         loginVO.setToken(token);
         loginVO.setNickName(member.getName());
@@ -190,7 +195,8 @@ public class MemberServiceImpl implements MemberService {
         Page<List<Member>> listPage = memberMapper.page(phone, nickname);
 
         PageResponse<MemberVo> pageResponse = PageResponse.of(listPage, MemberVo.class);
-        List<Long> ids = pageResponse.getRecords().stream().map(MemberVo::getId).distinct().collect(Collectors.toList());
+        List<Long> ids =
+                pageResponse.getRecords().stream().map(MemberVo::getId).distinct().collect(Collectors.toList());
 
         pageResponse.getRecords().forEach(v -> {
             List<ContractVo> contractVos = contractService.listByMemberPhone(v.getPhone());
@@ -198,7 +204,8 @@ public class MemberServiceImpl implements MemberService {
             List<OrderVo> orderVos = orderService.listByMemberId(v.getId());
             v.setOrderCount(orderVos.size());
             List<MemberElderVo> memberElderVos = memberElderService.listByMemberId(v.getId());
-            List<String> collect = memberElderVos.stream().map(m -> m.getElderVo().getName()).collect(Collectors.toList());
+            List<String> collect =
+                    memberElderVos.stream().map(m -> m.getElderVo().getName()).collect(Collectors.toList());
             v.setElderNames(String.join(",", collect));
         });
         return pageResponse;
