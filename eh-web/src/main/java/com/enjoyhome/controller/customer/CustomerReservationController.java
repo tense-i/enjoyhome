@@ -36,14 +36,6 @@ public class CustomerReservationController extends BaseController {
         return success(list);
     }
 
-    @GetMapping("/countByTime")
-    @ApiOperation("查询每个时间段剩余预约次数")
-    public ResponseResult countReservationsForEachTimeWithinTimeRange2(@RequestParam(required = false) Long time) {
-        List<TimeCountVo> list =
-                reservationService.countReservationsForEachTimeWithinTimeRange(LocalDateTimeUtil.of(time));
-        return success(list);
-    }
-
 
     @GetMapping("/cancelled-count")
     @ApiOperation("查询取消预约数量")

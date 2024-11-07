@@ -2,7 +2,6 @@ package com.enjoyhome.service.impl;
 
 import cn.hutool.core.bean.BeanUtil;
 import cn.hutool.core.date.LocalDateTimeUtil;
-import com.google.common.collect.Lists;
 import com.enjoyhome.constant.DeptCacheConstant;
 import com.enjoyhome.constant.SuperConstant;
 import com.enjoyhome.dto.DeptDto;
@@ -19,6 +18,7 @@ import com.enjoyhome.utils.ObjectUtil;
 import com.enjoyhome.vo.DeptVo;
 import com.enjoyhome.vo.TreeItemVo;
 import com.enjoyhome.vo.TreeVo;
+import com.google.common.collect.Lists;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.cache.annotation.CacheEvict;
 import org.springframework.cache.annotation.Cacheable;
@@ -50,12 +50,12 @@ public class DeptServiceImpl implements DeptService {
     /**
      * @param deptDto 对象信息
      * @return DeptVo
-     *  创建部门表
+     * 创建部门表
      */
     @Transactional
     @Override
-    @Caching(evict = {@CacheEvict(value = DeptCacheConstant.LIST,allEntries = true),
-            @CacheEvict(value = DeptCacheConstant.TREE,allEntries = true)})
+    @Caching(evict = {@CacheEvict(value = DeptCacheConstant.LIST, allEntries = true),
+            @CacheEvict(value = DeptCacheConstant.TREE, allEntries = true)})
     public Boolean createDept(DeptDto deptDto) {
         //转换deptDto为Dept
         Dept dept = BeanUtil.toBean(deptDto, Dept.class);
@@ -85,11 +85,11 @@ public class DeptServiceImpl implements DeptService {
     /**
      * @param deptDto 对象信息
      * @return Boolean
-     *  修改部门表
+     * 修改部门表
      */
     @Transactional
-    @Caching(evict = {@CacheEvict(value = DeptCacheConstant.LIST,allEntries = true),
-            @CacheEvict(value = DeptCacheConstant.TREE,allEntries = true)})
+    @Caching(evict = {@CacheEvict(value = DeptCacheConstant.LIST, allEntries = true),
+            @CacheEvict(value = DeptCacheConstant.TREE, allEntries = true)})
     @Override
     public Boolean updateDept(DeptDto deptDto) {
         //转换DeptVo为Dept
@@ -125,14 +125,15 @@ public class DeptServiceImpl implements DeptService {
 
     /**
      * @param deptDto 查询条件
-     *  多条件查询部门表列表
+     *                多条件查询部门表列表
      * @return: List<DeptVo>
      */
-    @Cacheable(value = DeptCacheConstant.LIST,key ="#deptDto.hashCode()")
+    @Cacheable(value = DeptCacheConstant.LIST, key = "#deptDto.hashCode()")
     @Override
     public List<DeptVo> findDeptList(DeptDto deptDto) {
         List<Dept> deptList = deptMapper.selectList(deptDto);
         List<DeptVo> deptVos = BeanConv.toBeanList(deptList, DeptVo.class);
+        // 时间戳转换为日期
         deptVos.forEach(v -> v.setCreateDay(LocalDateTimeUtil.format(v.getCreateTime(), "yyyy-MM-dd")));
         return deptVos;
     }
@@ -144,19 +145,27 @@ public class DeptServiceImpl implements DeptService {
         return BeanConv.toBeanList(depts, DeptVo.class);
     }
 
-
+    /**
+     * 根据父部门编号创建当前部门编号
+     *
+     * @param parentDeptNo 父部门编号
+     * @return
+     */
     @Override
     public String createDeptNo(String parentDeptNo) {
         if (NoProcessing.processString(parentDeptNo).length() / 3 == 5) {
             throw new BaseException("部门最多4级");
         }
         DeptDto deptDto = DeptDto.builder().parentDeptNo(parentDeptNo).build();
+        // 当前父部门下面的所有部门
         List<Dept> deptList = deptMapper.selectList(deptDto);
         //无下属节点则创建下属节点
         if (EmptyUtil.isNullOrEmpty(deptList)) {
+            // 生成编号
             return NoProcessing.createNo(parentDeptNo, false);
             //有下属节点则累加下属节点
         } else {
+            // 获取最大的部门编号
             Long deptNo = deptList.stream()
                     .map(dept -> {
                         return Long.valueOf(dept.getDeptNo());
@@ -172,8 +181,8 @@ public class DeptServiceImpl implements DeptService {
     }
 
     @Transactional
-    @Caching(evict = {@CacheEvict(value = DeptCacheConstant.LIST,allEntries = true),
-            @CacheEvict(value = DeptCacheConstant.TREE,allEntries = true)})
+    @Caching(evict = {@CacheEvict(value = DeptCacheConstant.LIST, allEntries = true),
+            @CacheEvict(value = DeptCacheConstant.TREE, allEntries = true)})
     @Override
     public int deleteDeptById(String deptId) {
         if (hasChildByDeptId(deptId)) {
@@ -193,8 +202,8 @@ public class DeptServiceImpl implements DeptService {
      * @param deptDto
      * @return
      */
-    @Caching(evict = {@CacheEvict(value = DeptCacheConstant.LIST,allEntries = true),
-            @CacheEvict(value = DeptCacheConstant.TREE,allEntries = true)})
+    @Caching(evict = {@CacheEvict(value = DeptCacheConstant.LIST, allEntries = true),
+            @CacheEvict(value = DeptCacheConstant.TREE, allEntries = true)})
     @Override
     public Boolean isEnable(DeptDto deptDto) {
 
@@ -221,7 +230,7 @@ public class DeptServiceImpl implements DeptService {
      */
     public boolean hasChildByDeptId(String deptId) {
         int result = deptMapper.hasChildByDeptId(deptId);
-        return result > 0 ? true : false;
+        return result > 0;
     }
 
     /**
@@ -232,11 +241,12 @@ public class DeptServiceImpl implements DeptService {
      */
     public boolean checkDeptExistUser(String deptId) {
         int result = deptMapper.checkDeptExistUser(deptId);
-        return result > 0 ? true : false;
+        return result > 0;
     }
 
     /**
      * 组织部门树形
+     *
      * @return: deptDto
      */
     @Override
@@ -244,13 +254,13 @@ public class DeptServiceImpl implements DeptService {
     public TreeVo deptTreeVo() {
         //根节点查询树形结构
         String parentDeptNo = SuperConstant.ROOT_DEPT_PARENT_ID;
-        //指定节点查询树形结构
+        //指定节点查询树形结构 （顶级root节点）
         DeptDto deptDto = DeptDto.builder()
                 .dataState(SuperConstant.DATA_STATE_0)
                 .parentDeptNo(NoProcessing.processString(parentDeptNo))
                 .build();
         //查询部门列表数据
-        List<Dept> deptList =  deptMapper.selectList(deptDto);
+        List<Dept> deptList = deptMapper.selectList(deptDto);
 
         if (EmptyUtil.isNullOrEmpty(deptList)) {
             throw new RuntimeException("部门数据没有定义！");
@@ -259,8 +269,11 @@ public class DeptServiceImpl implements DeptService {
         List<TreeItemVo> treeItemVoList = new ArrayList<>();
         //找根节点
         Dept rootDept = deptList.stream()
+                // 过滤出父节点为根节点的数据
                 .filter(d -> SuperConstant.ROOT_DEPT_PARENT_ID.equals(d.getParentDeptNo()))
-                .collect(Collectors.toList()).get(0);
+                .collect(Collectors.toList())
+                // 获取第一个
+                .get(0);
         //递归调用
         recursionTreeItem(treeItemVoList, rootDept, deptList);
         //返回
@@ -271,9 +284,10 @@ public class DeptServiceImpl implements DeptService {
 
     /**
      * 构建树形结构，递归调用
-     * @param treeItemVoList   封装返回的对象
-     * @param deptRoot  当前部门
-     * @param deptList  部门列表（全部数据）
+     *
+     * @param treeItemVoList 封装返回的对象
+     * @param deptRoot       当前部门
+     * @param deptList       部门列表（全部数据）
      */
     private void recursionTreeItem(List<TreeItemVo> treeItemVoList, Dept deptRoot, List<Dept> deptList) {
         //构建item对象

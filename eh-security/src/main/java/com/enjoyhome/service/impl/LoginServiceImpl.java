@@ -25,11 +25,14 @@ import java.util.concurrent.TimeUnit;
 import java.util.stream.Collectors;
 
 /**
- *  登录接口实现
+ * 登录接口实现
  */
 @Component
 public class LoginServiceImpl implements LoginService {
 
+    /**
+     * 认证管理器
+     */
     @Autowired
     AuthenticationManager authenticationManager;
 
@@ -53,19 +56,24 @@ public class LoginServiceImpl implements LoginService {
         //用户认证
         UsernamePasswordAuthenticationToken authentication =
                 new UsernamePasswordAuthenticationToken(userVo.getUsername(), userVo.getPassword());
+        // 认证器
         Authentication authenticate = authenticationManager.authenticate(authentication);
 
         //认证Authentication对象获得内置对象UserAuth
         UserAuth userAuth = (UserAuth) authenticate.getPrincipal();
+        // 脱敏？ 为什么要脱敏？
         userAuth.setPassword("");
+        //转换为UserVo
         UserVo userVoResult = BeanConv.toBean(userAuth, UserVo.class);
 
         //查询当前用户拥有的资源列表，方便授权过滤器进行校验
         List<ResourceVo> resourceVoList = resourceService.findResourceVoListByUserId(userVoResult.getId());
         Set<String> requestPaths = resourceVoList.stream()
-                .filter(x -> "r".equals(x.getResourceType()))
-                .map(ResourceVo::getRequestPath)
-                .collect(Collectors.toSet());
+                .filter(x -> "r".equals(x.getResourceType()))// 过滤可读资源
+                .map(ResourceVo::getRequestPath) // 获取所有可读资源请求路径URL
+                .collect(Collectors.toSet());// 去重
+
+        // 当前用户拥有的资源请求路径
         userVoResult.setResourceRequestPaths(requestPaths);
 
         //用户当前角色列表
@@ -86,12 +94,14 @@ public class LoginServiceImpl implements LoginService {
         claims.put("currentUser", userVoJsonString);
 
         //jwtToken令牌颁布
-        String jwtToken = JwtUtil.createJWT(jwtTokenManagerProperties.getBase64EncodedSecretKey(), jwtTokenManagerProperties.getTtl(), claims);
+        String jwtToken = JwtUtil.createJWT(jwtTokenManagerProperties.getBase64EncodedSecretKey(),
+                jwtTokenManagerProperties.getTtl(), claims);
 
         //剔除缓存：用户关联userToken
         String userTokenKey = UserCacheConstant.USER_TOKEN + userVo.getUsername();
-        long ttl = Long.valueOf(jwtTokenManagerProperties.getTtl()) / 1000;
+        long ttl = Long.valueOf(jwtTokenManagerProperties.getTtl()) / 1000;// 毫秒转秒
         //key：username   value:uuid
+        // 存储到redis中、请求到达时，通过userTokenKey获取userToken
         redisTemplate.opsForValue().set(userTokenKey, userToken, ttl, TimeUnit.SECONDS);
 
         //续期缓存：userToken关联jwtToken

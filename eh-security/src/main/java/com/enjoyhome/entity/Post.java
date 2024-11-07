@@ -6,6 +6,10 @@ import lombok.NoArgsConstructor;
 
 @Data
 @NoArgsConstructor
+/**
+ * 岗位表
+ 
+ */
 public class Post extends BaseEntity {
 
     private static final long serialVersionUID = 1L;

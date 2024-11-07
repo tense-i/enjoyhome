@@ -25,9 +25,9 @@ public class SecurityConfigProperties {
 
     String loginPage;
 
-    //令牌有效时间
+    //令牌有效时间、三天
     Integer accessTokenValiditySeconds = 3 * 24 * 3600;
 
-    //刷新令牌有效时间
+    //刷新令牌有效时间、七天
     Integer refreshTokenValiditySeconds = 7 * 24 * 3600;
 }

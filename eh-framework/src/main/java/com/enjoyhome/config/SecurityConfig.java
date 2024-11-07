@@ -16,11 +16,11 @@ import org.springframework.security.web.SecurityFilterChain;
 import java.util.List;
 
 /**
- *  权限核心配置类
+ * 权限核心配置类
  */
 @Configuration
 @EnableConfigurationProperties(SecurityConfigProperties.class)
-public class SecurityConfig  {
+public class SecurityConfig {
 
     @Autowired
     SecurityConfigProperties securityConfigProperties;
@@ -34,12 +34,12 @@ public class SecurityConfig  {
         //忽略地址
         List<String> ignoreUrl = securityConfigProperties.getIgnoreUrl();
         http.authorizeHttpRequests()
-                .antMatchers( ignoreUrl.toArray( new String[ignoreUrl.size() ] ) )
-                .permitAll()
-                .anyRequest().access(jwtAuthorizationManager);
+                .antMatchers(ignoreUrl.toArray(new String[ignoreUrl.size()]))
+                .permitAll()// 忽略所有ignoreUrl地址
+                .anyRequest().access(jwtAuthorizationManager);// 其他地址需要认证
 
-        http.csrf().disable();
-        http.sessionManagement().sessionCreationPolicy(SessionCreationPolicy.STATELESS );//关闭session
+        http.csrf().disable();//关闭csrf
+        http.sessionManagement().sessionCreationPolicy(SessionCreationPolicy.STATELESS);//关闭session
         http.headers().cacheControl().disable();//关闭缓存
 
         return http.build();
@@ -47,11 +47,12 @@ public class SecurityConfig  {
 
     @Bean
     public AuthenticationManager authenticationManager(AuthenticationConfiguration authenticationConfiguration) throws Exception {
-        return  authenticationConfiguration.getAuthenticationManager();
+        return authenticationConfiguration.getAuthenticationManager();
     }
 
     /**
      * BCrypt密码编码
+     *
      * @return
      */
     @Bean

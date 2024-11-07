@@ -5,6 +5,7 @@ import com.enjoyhome.vo.TimeCountVo;
 import com.github.pagehelper.Page;
 import org.apache.ibatis.annotations.Mapper;
 import org.apache.ibatis.annotations.Param;
+import org.apache.ibatis.annotations.Update;
 
 import java.time.LocalDateTime;
 import java.util.List;
@@ -60,6 +61,7 @@ public interface ReservationMapper {
      *
      * @param minusDays
      */
+    @Update("update reservation set status = 3 where status = 1 and create_time < #{minusDays}")
     void updateReservationStatus(LocalDateTime minusDays);
 
 }
