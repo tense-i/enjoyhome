@@ -65,7 +65,7 @@ knife4j:
 enjoyhome:
   framework:
     security:
-      ignore-url:
+      ignore-url: # 忽略的url
         #        - /**
         - /resource/menus/**
         - /resource/myButten/**

@@ -16,7 +16,7 @@ import javax.servlet.http.HttpServletRequest;
 import javax.servlet.http.HttpServletResponse;
 
 /**
- *  多租户放到SubjectContent上下文中
+ * 多租户放到SubjectContent上下文中
  */
 @Component
 public class UserTokenIntercept implements HandlerInterceptor {
@@ -30,16 +30,19 @@ public class UserTokenIntercept implements HandlerInterceptor {
     @Override
     public boolean preHandle(HttpServletRequest request, HttpServletResponse response, Object handler) throws Exception {
 
+        // 如果不是映射到方法直接通过
         if (!(handler instanceof HandlerMethod)) {
             return true;
         }
-        //从头部中拿到当前userToken
+        //从头部中拿到当前userToken（UUID颁发）
         String userToken = request.getHeader(SecurityConstant.USER_TOKEN);
         if (!EmptyUtil.isNullOrEmpty(userToken)) {
             String jwtTokenKey = UserCacheConstant.JWT_TOKEN + userToken;
             String jwtToken = redisTemplate.opsForValue().get(jwtTokenKey);
             if (!EmptyUtil.isNullOrEmpty(jwtToken)) {
-                Object userObj = JwtUtil.parseJWT(jwtTokenManagerProperties.getBase64EncodedSecretKey(), jwtToken).get("currentUser");
+                Object userObj =
+                        JwtUtil.parseJWT(jwtTokenManagerProperties.getBase64EncodedSecretKey(), jwtToken).get(
+                                "currentUser");
                 String currentUser = String.valueOf(userObj);
                 //放入当前线程中：用户当前的web直接获得user使用
                 UserThreadLocal.setSubject(currentUser);
@@ -49,7 +52,8 @@ public class UserTokenIntercept implements HandlerInterceptor {
     }
 
     @Override
-    public void afterCompletion(HttpServletRequest request, HttpServletResponse response, Object handler, Exception ex) throws Exception {
+    public void afterCompletion(HttpServletRequest request, HttpServletResponse response, Object handler,
+                                Exception ex) throws Exception {
         //移除当前线程中的参数
         UserThreadLocal.removeSubject();
     }

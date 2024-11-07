@@ -36,7 +36,7 @@ public class SecurityConfig {
         http.authorizeHttpRequests()
                 .antMatchers(ignoreUrl.toArray(new String[ignoreUrl.size()]))
                 .permitAll()// 忽略所有ignoreUrl地址
-                .anyRequest().access(jwtAuthorizationManager);// 其他地址需要认证
+                .anyRequest().access(jwtAuthorizationManager);// 其他地址需要使用jwtAuthorizationManager认证
 
         http.csrf().disable();//关闭csrf
         http.sessionManagement().sessionCreationPolicy(SessionCreationPolicy.STATELESS);//关闭session

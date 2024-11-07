@@ -25,13 +25,14 @@ import java.util.concurrent.TimeUnit;
 import java.util.function.Supplier;
 
 /**
- *  授权管理器
+ * 授权管理器.请求到达控制器之前进行授权决策
  */
 @Slf4j
 @Component
 public class JwtAuthorizationManager implements AuthorizationManager<RequestAuthorizationContext> {
 
-    private AntPathMatcher antPathMatcher = new AntPathMatcher();
+    // 路径匹配器
+    private final AntPathMatcher antPathMatcher = new AntPathMatcher();
 
     @Autowired
     private StringRedisTemplate redisTemplate;
@@ -40,29 +41,36 @@ public class JwtAuthorizationManager implements AuthorizationManager<RequestAuth
     private JwtTokenManagerProperties jwtTokenManagerProperties;
 
 
+    /**
+     * 授权决策.通过验证用户的身份令牌（userToken 和 jwtToken）来确定请求是否被允许访问受保护的资源
+     *
+     * @param authentication
+     * @param requestAuthorizationContext
+     * @return
+     */
     @Override
     public AuthorizationDecision check(Supplier<Authentication> authentication,
                                        RequestAuthorizationContext requestAuthorizationContext) {
         //用户当前请求路径
         String method = requestAuthorizationContext.getRequest().getMethod();
         String requestURI = requestAuthorizationContext.getRequest().getRequestURI();
-        String targetUrl = (method+requestURI);
+        String targetUrl = (method + requestURI);
 
         //获得请求中的认证后传递过来的userToken
         String userToken = requestAuthorizationContext.getRequest().getHeader(SecurityConstant.USER_TOKEN);
 
         //如果userToken为空,则当前请求不合法
-        if (EmptyUtil.isNullOrEmpty(userToken)){
+        if (EmptyUtil.isNullOrEmpty(userToken)) {
             return new AuthorizationDecision(false);
         }
 
         //通过userToken获取jwtToken
-        String jwtTokenKey = UserCacheConstant.JWT_TOKEN+userToken;
+        String jwtTokenKey = UserCacheConstant.JWT_TOKEN + userToken;
         //key:uuid
         String jwtToken = redisTemplate.opsForValue().get(jwtTokenKey);
 
         //如果jwtToken为空,则当前请求不合法
-        if (EmptyUtil.isNullOrEmpty(jwtToken)){
+        if (EmptyUtil.isNullOrEmpty(jwtToken)) {
             return new AuthorizationDecision(false);
         }
 
@@ -74,25 +82,26 @@ public class JwtAuthorizationManager implements AuthorizationManager<RequestAuth
         }
 
         //如果校验jwtToken通过，则获得userVo对象
-        UserVo userVo = JSONObject.parseObject(String.valueOf(cla.get("currentUser")),UserVo.class);
+        UserVo userVo = JSONObject.parseObject(String.valueOf(cla.get("currentUser")), UserVo.class);
 
         //用户剔除校验:redis中最新的userToken与出入的userToken不符合，则认为当前用户被后续用户剔除
         //key:username  value：uuid
         String currentUserToken = redisTemplate.opsForValue().get(UserCacheConstant.USER_TOKEN + userVo.getUsername());
-        if (!userToken.equals(currentUserToken)){
+        if (!userToken.equals(currentUserToken)) {
             return new AuthorizationDecision(false);
         }
 
         //如果当前UserToken存活时间少于10分钟，则进行续期
         Long remainTimeToLive = redisTemplate.opsForValue().getOperations().getExpire(jwtTokenKey);
-        if (remainTimeToLive.longValue()<= 600){
+        if (remainTimeToLive.longValue() <= 600) {
             //jwt生成的token也会过期，所以需要重新生成jwttoken
             Map<String, Object> claims = new HashMap<>();
             String userVoJsonString = String.valueOf(cla.get("currentUser"));
             claims.put("currentUser", userVoJsonString);
 
             //jwtToken令牌颁布
-            String newJwtToken = JwtUtil.createJWT(jwtTokenManagerProperties.getBase64EncodedSecretKey(), jwtTokenManagerProperties.getTtl(), claims);
+            String newJwtToken = JwtUtil.createJWT(jwtTokenManagerProperties.getBase64EncodedSecretKey(),
+                    jwtTokenManagerProperties.getTtl(), claims);
             long ttl = Long.valueOf(jwtTokenManagerProperties.getTtl()) / 1000;
 
             redisTemplate.opsForValue().set(jwtTokenKey, newJwtToken, ttl, TimeUnit.SECONDS);
