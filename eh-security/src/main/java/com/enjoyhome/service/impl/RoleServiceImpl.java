@@ -1,9 +1,5 @@
 package com.enjoyhome.service.impl;
 
-import com.github.pagehelper.Page;
-import com.github.pagehelper.PageHelper;
-import com.google.common.collect.Lists;
-import com.google.common.collect.Sets;
 import com.enjoyhome.base.PageResponse;
 import com.enjoyhome.constant.SecurityConstant;
 import com.enjoyhome.constant.SuperConstant;
@@ -21,6 +17,10 @@ import com.enjoyhome.utils.ObjectUtil;
 import com.enjoyhome.vo.DeptVo;
 import com.enjoyhome.vo.ResourceVo;
 import com.enjoyhome.vo.RoleVo;
+import com.github.pagehelper.Page;
+import com.github.pagehelper.PageHelper;
+import com.google.common.collect.Lists;
+import com.google.common.collect.Sets;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
@@ -62,34 +62,34 @@ public class RoleServiceImpl implements RoleService {
         PageHelper.startPage(pageNum, pageSize);
         Page<List<Role>> page = roleMapper.selectPage(roleDto);
         PageResponse<RoleVo> pageResponse = PageResponse.of(page, RoleVo.class);
-        if (!EmptyUtil.isNullOrEmpty(pageResponse.getRecords())){
+        if (!EmptyUtil.isNullOrEmpty(pageResponse.getRecords())) {
             List<Long> roleIdSet = pageResponse.getRecords().stream().map(RoleVo::getId).collect(Collectors.toList());
             //查询对应资源
             List<ResourceVo> resourceList = resourceService.findResourceVoListInRoleId(roleIdSet);
             //查询对应数据权限
             List<DeptVo> deptVoList = deptService.findDeptVoListInRoleId(roleIdSet);
-            pageResponse.getRecords().forEach(n->{
+            pageResponse.getRecords().forEach(n -> {
                 //装配资源
                 Set<String> resourceNoSet = Sets.newHashSet();
-                if (!EmptyUtil.isNullOrEmpty(resourceList)){
-                    resourceList.forEach(r->{
-                        if (String.valueOf(n.getId()).equals(r.getRoleId())){
+                if (!EmptyUtil.isNullOrEmpty(resourceList)) {
+                    resourceList.forEach(r -> {
+                        if (String.valueOf(n.getId()).equals(r.getRoleId())) {
                             resourceNoSet.add(r.getResourceNo());
                         }
                     });
-                    if (!EmptyUtil.isNullOrEmpty(resourceNoSet)){
+                    if (!EmptyUtil.isNullOrEmpty(resourceNoSet)) {
                         n.setCheckedResourceNos(resourceNoSet.toArray(new String[resourceNoSet.size()]));
                     }
                 }
                 //装配数据权限
                 Set<String> deptNoSet = Sets.newHashSet();
-                if (!EmptyUtil.isNullOrEmpty(deptVoList)){
-                    deptVoList.forEach(d->{
-                        if (String.valueOf(n.getId()).equals(d.getRoleId())){
+                if (!EmptyUtil.isNullOrEmpty(deptVoList)) {
+                    deptVoList.forEach(d -> {
+                        if (String.valueOf(n.getId()).equals(d.getRoleId())) {
                             deptNoSet.add(d.getDeptNo());
                         }
                     });
-                    if (!EmptyUtil.isNullOrEmpty(deptNoSet)){
+                    if (!EmptyUtil.isNullOrEmpty(deptNoSet)) {
                         n.setCheckedDeptNos(deptNoSet.toArray(new String[deptNoSet.size()]));
                     }
                 }
@@ -104,7 +104,7 @@ public class RoleServiceImpl implements RoleService {
         //转换RoleVo为Role
         Role role = BeanConv.toBean(roleDto, Role.class);
         int flag = roleMapper.insert(role);
-        if (flag==0){
+        if (flag == 0) {
             throw new RuntimeException("保存角色信息出错");
         }
         return BeanConv.toBean(role, RoleVo.class);
@@ -116,13 +116,14 @@ public class RoleServiceImpl implements RoleService {
     public Boolean updateRole(RoleDto roleDto) {
         //转换RoleVo为Role
         Role role = BeanConv.toBean(roleDto, Role.class);
+        // 数据状态正常
         if (ObjectUtil.isNotEmpty(role.getDataState()) && role.getDataState().equals("1")) {
             if (countUserRoleByRoleId(role.getId()) > 0) {
                 throw new RuntimeException("该角色已分配用户,不能禁用");
             }
         }
         int flag = roleMapper.updateByPrimaryKeySelective(role);
-        if (flag==0){
+        if (flag == 0) {
             throw new RuntimeException("修改角色信息出错");
         }
 
@@ -130,19 +131,24 @@ public class RoleServiceImpl implements RoleService {
             return true;
         }
 
+
         if (ObjectUtil.isEmpty(roleDto.getDataScope())) {
-            //删除原有角色资源中间信息
+            //这个角色没有数据权限
+
+            //删除原有角色在源中间表的信息
             roleResourceService.deleteRoleResourceByRoleId(role.getId());
 
             //保存角色资源中间信息
             if (roleDto.getCheckedResourceNos() == null || roleDto.getCheckedResourceNos().length == 0) {
+                // 没有任何资源
                 return true;
             }
+            // 该角色的资源列表
             List<RoleResource> roleResourceList = Lists.newArrayList();
-            Arrays.asList(roleDto.getCheckedResourceNos()).forEach(n->{
+            Arrays.asList(roleDto.getCheckedResourceNos()).forEach(n -> {
                 RoleResource roleResource = RoleResource.builder()
                         .roleId(role.getId())
-                        .resourceNo(n)
+                        .resourceNo(n) //资源编号
                         .dataState(SuperConstant.DATA_STATE_0)
                         .build();
                 roleResourceList.add(roleResource);
@@ -150,29 +156,30 @@ public class RoleServiceImpl implements RoleService {
             if (roleResourceList.size() == 0) {
                 return true;
             }
+
             flag = roleResourceService.batchInsert(roleResourceList);
-            if (flag==0){
-                throw  new RuntimeException("保存角色资源中间信息失败");
+            if (flag == 0) {
+                throw new RuntimeException("保存角色资源中间信息失败");
             }
             return true;
         }
 
         //删除原有角色数据权限:这里不需要判断返回结果，有可能之前就没有自定义数据权限
         roleDeptService.deleteRoleDeptByRoleId(role.getId());
-        //保存先的数据权限
-        if (SecurityConstant.DATA_SCOPE_0.equals(roleDto.getDataScope())){
+        //保存自定义的数据权限
+        if (SecurityConstant.DATA_SCOPE_0.equals(roleDto.getDataScope())) {
             //保存角色部门中间信息
             List<RoleDept> roleDeptList = Lists.newArrayList();
-            Arrays.asList(roleDto.getCheckedDeptNos()).forEach(n->{
+            Arrays.asList(roleDto.getCheckedDeptNos()).forEach(n -> {
                 RoleDept roleDept = RoleDept.builder()
-                    .roleId(role.getId())
-                    .deptNo(n)
-                    .dataState(SuperConstant.DATA_STATE_0)
-                    .build();
+                        .roleId(role.getId())
+                        .deptNo(n)
+                        .dataState(SuperConstant.DATA_STATE_0)
+                        .build();
                 roleDeptList.add(roleDept);
             });
             flag = roleDeptService.batchInsert(roleDeptList);
-            if (flag==0){
+            if (flag == 0) {
                 throw new RuntimeException("保存角色部门中间信息出错");
             }
         }
@@ -192,10 +199,10 @@ public class RoleServiceImpl implements RoleService {
     @Override
     public List<RoleVo> initRoles() {
         RoleVo roleVo = RoleVo.builder()
-            .dataState(SuperConstant.DATA_STATE_0)
-            .build();
+                .dataState(SuperConstant.DATA_STATE_0)
+                .build();
         List<Role> roleList = roleMapper.selectList(roleVo);
-        return BeanConv.toBeanList(roleList,RoleVo.class);
+        return BeanConv.toBeanList(roleList, RoleVo.class);
     }
 
     @Override

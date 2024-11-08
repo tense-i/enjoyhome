@@ -4,6 +4,7 @@ import java.lang.annotation.*;
 
 /**
  * DataScope
+ *
  * @describe: 数据权限过滤注解
  **/
 @Target(ElementType.METHOD)
@@ -11,7 +12,17 @@ import java.lang.annotation.*;
 @Documented
 public @interface DataScope {
 
-    public String deptAlias() default "";
+    /**
+     * 部门表的别名
+     *
+     * @return
+     */
+    String deptAlias() default "";
 
-    public String userAlias() default "";
+    /**
+     * 用户表的别名
+     *
+     * @return
+     */
+    String userAlias() default "";
 }

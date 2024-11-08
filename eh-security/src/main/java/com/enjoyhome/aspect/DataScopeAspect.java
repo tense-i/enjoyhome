@@ -20,6 +20,7 @@ import java.lang.reflect.Method;
 
 /**
  * DataScopeAspect
+ *
  * @author itheima
  **/
 @Aspect
@@ -67,6 +68,11 @@ public class DataScopeAspect {
         handleDataScope(point);
     }
 
+    /**
+     * 数据范围过滤
+     *
+     * @param joinPoint
+     */
     protected void handleDataScope(final JoinPoint joinPoint) {
         // 获得注解
         DataScope controllerDataScope = getAnnotationLog(joinPoint);
@@ -78,6 +84,7 @@ public class DataScopeAspect {
         UserVo userVo = JSONUtil.toBean(subject, UserVo.class);
         // 如果是超级管理员，则不过滤数据
         if (StringUtils.isNotNull(userVo) && !userVo.getUsername().equals("admin")) {
+            // 不是超级管理员，则进行数据过滤
             dataScopeFilter(joinPoint, userVo, controllerDataScope.deptAlias(),
                     controllerDataScope.userAlias());
         }
@@ -110,7 +117,8 @@ public class DataScopeAspect {
             } else if (DATA_SCOPE_DEPT_AND_CHILD.equals(dataScope)) {
                 String str = NoProcessing.processString(user.getDeptNo()) + "%";
                 sqlString.append(
-                        " OR dept_no IN ( SELECT dept_no FROM sys_dept WHERE dept_no = " + user.getDeptNo() + " or dept_no like  '" + str + "')");
+                        " OR dept_no IN ( SELECT dept_no FROM sys_dept WHERE dept_no = " + user.getDeptNo() + " or " +
+                                "dept_no like  '" + str + "')");
                 // 如果是仅本人数据权限，则只查看本人的数据
             } else if (DATA_SCOPE_SELF.equals(dataScope)) {//  or u.user_id = 登录用户id
                 sqlString.append(" OR create_by = " + user.getId());
@@ -118,7 +126,8 @@ public class DataScopeAspect {
         }
 
         if (StringUtils.isNotBlank(sqlString.toString())) {
-            Object params = joinPoint.getArgs()[0];  //获取第一个参数  要求一定得是一个BaseEntity  在Service执行前 则就已经加上了 Sql   or u.user_id = 登录用户id
+            Object params = joinPoint.getArgs()[0];  //获取第一个参数  要求一定得是一个BaseEntity  在Service执行前 则就已经加上了 Sql   or u
+            // .user_id = 登录用户id
             if (StringUtils.isNotNull(params) && params instanceof BaseDto) {
                 BaseDto baseDto = (BaseDto) params;
                 baseDto.getParams().put(DATA_SCOPE, "(" + sqlString.substring(4) + ")");
@@ -130,11 +139,14 @@ public class DataScopeAspect {
      * 是否存在注解，如果存在就获取
      */
     private DataScope getAnnotationLog(JoinPoint joinPoint) {
+        // 获取目标方法的签名
         Signature signature = joinPoint.getSignature();
         MethodSignature methodSignature = (MethodSignature) signature;
+        // 获取目标方法
         Method method = methodSignature.getMethod();
 
         if (method != null) {
+            // 获取方法上的注解
             return method.getAnnotation(DataScope.class);
         }
         return null;
