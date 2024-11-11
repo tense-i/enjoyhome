@@ -15,7 +15,7 @@ import org.apache.ibatis.type.Alias;
 import java.time.LocalDateTime;
 
 /**
- * @author itheima
+ * @author tensei
  */
 @Data
 @ApiModel(description = "入住实体类")
@@ -37,7 +37,7 @@ public class CheckIn extends BaseEntity {
     private ElderDto elderDto;
 
     /**
-     * 其他申请信息
+     * 其它携带信息。ElderDto\checkInOtherDto\
      */
     @ApiModelProperty(value = "其他信息")
     private String otherApplyInfo;
@@ -100,11 +100,11 @@ public class CheckIn extends BaseEntity {
     private LocalDateTime createTime;
     /**
      * 流程状态
-     *  0:申请入住
-     *  1:入住评估
-     *  2:入住审批
-     *  3:入住配置
-     *  4:签约办理
+     * 0:申请入住
+     * 1:入住评估
+     * 2:入住审批
+     * 3:入住配置
+     * 4:签约办理
      */
     @ApiModelProperty(value = "流程状态")
     private Integer flowStatus;
@@ -126,7 +126,7 @@ public class CheckIn extends BaseEntity {
 
     //状态枚举类
     @Alias("CheckInFolwStatus")
-    public enum FlowStatus{
+    public enum FlowStatus {
         APPLY(0, "入住申请", "养老顾问"),
         REVIEW(1, "入住评估", "护理组主管"),
         APPROVAL(2, "入住审核", "院长"),
@@ -136,35 +136,38 @@ public class CheckIn extends BaseEntity {
         String name;
         String role;
 
-        FlowStatus(Integer code, String name, String role){
+        FlowStatus(Integer code, String name, String role) {
             this.code = code;
             this.name = name;
             this.role = role;
         }
-        public Integer getCode(){
+
+        public Integer getCode() {
             return this.code;
         }
 
-        public String getName(){
+        public String getName() {
             return this.name;
         }
 
-        public String getRole(){
+        public String getRole() {
             return this.role;
         }
     }
 
     //状态枚举类
     @Alias("CheckInStatus")
-    public enum Status{
-        APPLICATION(1),
-        FINISHED(2),
-        CLOSED(3);
+    public enum Status {
+        APPLICATION(1),//申请中
+        FINISHED(2),//已完成
+        CLOSED(3);// 已关闭
         Integer code;
-        Status(Integer code){
+
+        Status(Integer code) {
             this.code = code;
         }
-        public Integer getCode(){
+
+        public Integer getCode() {
             return this.code;
         }
     }

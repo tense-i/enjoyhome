@@ -5,7 +5,7 @@ import com.fasterxml.jackson.annotation.JsonValue;
 /**
  * 交易单状态枚举
  *
- * @author itheima
+ * @author tensei
  * @version 1.0
  */
 public enum TradingStateEnum {

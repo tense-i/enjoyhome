@@ -3,7 +3,7 @@ package com.enjoyhome.vo;
 import lombok.Data;
 
 /**
- * @author itheima
+ * @author tensei
  */
 @Data
 public class UserRoleVo {

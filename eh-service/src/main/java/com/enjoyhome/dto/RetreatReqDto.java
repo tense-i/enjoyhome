@@ -7,7 +7,7 @@ import lombok.Data;
 import java.time.LocalDateTime;
 
 /**
- * @author itheima
+ * @author tensei
  */
 @Data
 public class RetreatReqDto extends BaseEntity {

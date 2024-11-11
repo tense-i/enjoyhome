@@ -10,21 +10,21 @@ import java.io.Serializable;
 import java.time.LocalDateTime;
 
 /**
-* <p>
-* rescission_contract 实体类
-* </p>
-*
-* @author itheima
-*/
+ * <p>
+ * rescission_contract 实体类
+ * </p>
+ *
+ * @author tensei
+ */
 @Data
 @ApiModel(description = "解除协议")
-public class RescissionContract extends BaseEntity implements Serializable  {
+public class RescissionContract extends BaseEntity implements Serializable {
     private static final long serialVersionUID = 1L;
 
 
     /**
-    * 协议URL
-    */
+     * 协议URL
+     */
     @ApiModelProperty(value = "协议URL")
     private String contractUrl;
 

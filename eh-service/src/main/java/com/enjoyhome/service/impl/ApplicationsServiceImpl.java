@@ -12,7 +12,7 @@ import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Service;
 
 /**
- * @author itheima
+ * @author tensei
  */
 @Service
 public class ApplicationsServiceImpl implements ApplicationsService {
@@ -22,6 +22,7 @@ public class ApplicationsServiceImpl implements ApplicationsService {
 
     /**
      * 分页查询我的申请
+     *
      * @param applicationsDto
      * @return
      */

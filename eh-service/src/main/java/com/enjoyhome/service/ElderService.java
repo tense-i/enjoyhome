@@ -14,6 +14,7 @@ import java.util.List;
 public interface ElderService {
     /**
      * 根据id删除老人信息
+     *
      * @param id
      * @return
      */
@@ -21,6 +22,7 @@ public interface ElderService {
 
     /**
      * 插入老人信息
+     *
      * @param record
      * @return
      */
@@ -28,6 +30,7 @@ public interface ElderService {
 
     /**
      * 选择性插入老人信息
+     *
      * @param record
      * @return
      */
@@ -35,21 +38,24 @@ public interface ElderService {
 
     /**
      * 根据id选择老人信息
+     *
      * @param id
      * @return
      */
     ElderVo selectByPrimaryKey(Long id);
 
     /**
-     * 选择性更新老人信息
+     * 选择性更新老人信息。
+     *
      * @param record
-     * @param b
+     * @param b      若为true，则更新老人的姓名为name+remark、remark+1
      * @return
      */
     Elder updateByPrimaryKeySelective(ElderDto record, boolean b);
 
     /**
      * 更新老人信息
+     *
      * @param record
      * @return
      */
@@ -57,6 +63,7 @@ public interface ElderService {
 
     /**
      * 根据身份证号和姓名查询老人信息
+     *
      * @param idCard
      * @param name
      * @return
@@ -65,12 +72,14 @@ public interface ElderService {
 
     /**
      * 查询所有老人
+     *
      * @return
      */
     List<ElderVo> selectList();
 
     /**
      * 根据id集合查询老人列表
+     *
      * @param ids
      * @return
      */
@@ -78,7 +87,8 @@ public interface ElderService {
 
     /**
      * 选择老人列表
-     * @param name  老人姓名
+     *
+     * @param name     老人姓名
      * @param idCardNo 身份证号
      * @param pageNum
      * @param pageSize
@@ -88,12 +98,14 @@ public interface ElderService {
 
     /**
      * 设置护理员
+     *
      * @param nursingElders
      */
     void setNursing(List<NursingElderDto> nursingElders);
 
     /**
      * 根据身份证号和名字查询老人
+     *
      * @param idCard
      * @param name
      * @return
@@ -102,6 +114,7 @@ public interface ElderService {
 
     /**
      * 根据身份证号查询老人
+     *
      * @param idCard
      * @return
      */
@@ -110,6 +123,7 @@ public interface ElderService {
 
     /**
      * 清除老人床位编号
+     *
      * @param elderId
      */
     void clearBedNum(Long elderId);

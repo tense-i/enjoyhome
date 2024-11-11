@@ -10,7 +10,7 @@ import java.time.LocalDateTime;
 
 /**
  * @ClassName BasicVo.java
- *  基础请求
+ * 基础请求
  */
 @Data
 @NoArgsConstructor
@@ -62,7 +62,7 @@ public class BaseVo implements Serializable {
     protected String dataState;
 
     /**
-     * 备注
+     * 备注信息。floorId:roomId:bedId:floorName:code
      */
     @ApiModelProperty(value = "备注")
     private String remark;

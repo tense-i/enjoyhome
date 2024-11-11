@@ -1,10 +1,10 @@
 package com.enjoyhome.enums;
 
 /**
- * @author itheima
+ * @author tensei
  */
 public enum OperatorEnum {
-    GE{
+    GE {
         @Override
         public boolean isOverthreshold(float threshold, float v) {
             return Float.compare(threshold, v) >= 0;

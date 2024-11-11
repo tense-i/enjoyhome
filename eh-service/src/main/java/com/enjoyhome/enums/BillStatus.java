@@ -1,9 +1,10 @@
 package com.enjoyhome.enums;
+
 import io.swagger.annotations.ApiModel;
 import io.swagger.annotations.ApiModelProperty;
 
 /**
- * @author itheima
+ * @author tensei
  */
 @ApiModel(description = "账单状态枚举")
 public enum BillStatus {

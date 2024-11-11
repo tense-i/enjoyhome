@@ -15,12 +15,12 @@ import org.springframework.web.bind.annotation.RequestMapping;
 import org.springframework.web.bind.annotation.RestController;
 
 /**
-* <p>
-* applications 控制器实现
-* </p>
-*
-* @author itheima
-*/
+ * <p>
+ * applications 控制器实现
+ * </p>
+ *
+ * @author tensei
+ */
 @RestController
 @RequestMapping("/applications")
 @Api(tags = "我的申请")
@@ -31,7 +31,7 @@ public class ApplicationsController {
 
     @PostMapping("/selectByPage")
     @ApiOperation(value = "查询我的申请")
-    public ResponseResult<ApplicationsVo> selectByPage(@RequestBody ApplicationsDto applicationsDto){
+    public ResponseResult<ApplicationsVo> selectByPage(@RequestBody ApplicationsDto applicationsDto) {
 
         Long mgtUserId = UserThreadLocal.getMgtUserId();
         applicationsDto.setApplicatId(mgtUserId);

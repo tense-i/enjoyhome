@@ -4,7 +4,7 @@ import com.enjoyhome.entity.Applications;
 import lombok.Data;
 
 /**
- * @author itheima
+ * @author tensei
  */
 @Data
 public class ApplicationsVo extends Applications {

@@ -3,7 +3,7 @@ package com.enjoyhome.test;
 import java.util.Date;
 
 /**
- * @author itheima
+ * @author tensei
  */
 public class AppMainTest {
 

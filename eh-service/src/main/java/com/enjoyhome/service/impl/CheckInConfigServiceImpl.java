@@ -56,6 +56,7 @@ public class CheckInConfigServiceImpl implements CheckInConfigService {
 
     /**
      * 根据老人ID查询当前入住配置
+     *
      * @param elderId 老人ID
      * @return CheckInConfig
      */
@@ -75,7 +76,7 @@ public class CheckInConfigServiceImpl implements CheckInConfigService {
     public int checkIn(CheckInConfigDto checkInConfigDto) {
 
         if (checkInConfigDto.getCheckInStartTime().isAfter(checkInConfigDto.getCostStartTime())
-                || checkInConfigDto.getCheckInEndTime().isBefore(checkInConfigDto.getCostEndTime()))  {
+                || checkInConfigDto.getCheckInEndTime().isBefore(checkInConfigDto.getCostEndTime())) {
             throw new BaseException("费用期限应该在入住期限内");
         }
         // 入住配置
@@ -85,7 +86,7 @@ public class CheckInConfigServiceImpl implements CheckInConfigService {
         //入住配置中设置床位号
         checkInConfig.setBedNo(bedById.getBedNumber());
         //组装床位信息，方便前端展示和回显 拼接规则：   楼层id:房间id:床位id:楼层名称:入住编码
-        checkInConfig.setRemark(checkInConfigDto.getFloorId() + ":" + checkInConfigDto.getRoomId()  + ":" + checkInConfigDto.getBedId()
+        checkInConfig.setRemark(checkInConfigDto.getFloorId() + ":" + checkInConfigDto.getRoomId() + ":" + checkInConfigDto.getBedId()
                 + ":" + checkInConfigDto.getFloorName()
                 + ":" + checkInConfigDto.getCode());
         if (ObjectUtil.isNotEmpty(checkInConfig.getId())) {
@@ -135,25 +136,26 @@ public class CheckInConfigServiceImpl implements CheckInConfigService {
                 user, AccraditationRecordConstant.AUDIT_STATUS_PASS,
                 "同意", "养老顾问处理-入住配置",
                 "法务处理-签约办理", nextAssignee
-        ,AccraditationRecordConstant.RECORD_HANDLE_TYPE_PROCESSED);
+                , AccraditationRecordConstant.RECORD_HANDLE_TYPE_PROCESSED);
         accraditationRecordService.insert(recoreVo);
-
         return 0;
 
     }
 
     /**
      * 获取操作记录数据
-     * @param checkIn  入住对象
-     * @param user  当前登录用户
-     * @param status  审核状态
-     * @param option  操作意见
-     * @param step    当前步骤
-     * @param nextStep   下一步说明
-     * @param nextAssignee  下一个审核人
+     *
+     * @param checkIn      入住对象
+     * @param user         当前登录用户
+     * @param status       审核状态
+     * @param option       操作意见
+     * @param step         当前步骤
+     * @param nextStep     下一步说明
+     * @param nextAssignee 下一个审核人
      * @return
      */
-    private RecoreVo getRecoreVo(CheckIn checkIn,User user,Integer status,String option,String step,String nextStep,Long nextAssignee,Integer handleType){
+    private RecoreVo getRecoreVo(CheckIn checkIn, User user, Integer status, String option, String step,
+                                 String nextStep, Long nextAssignee, Integer handleType) {
         RecoreVo recoreVo = new RecoreVo();
         recoreVo.setId(checkIn.getId());
         recoreVo.setType(AccraditationRecordConstant.RECORD_TYPE_CHECK_IN);

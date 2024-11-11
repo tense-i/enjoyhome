@@ -7,7 +7,7 @@ import java.time.LocalDateTime;
 import java.util.concurrent.TimeUnit;
 
 /**
- * @author itheima
+ * @author tensei
  */
 public class CodeUtil {
 
@@ -18,14 +18,14 @@ public class CodeUtil {
      * @param prefix        code前缀  比如：退住(TZ)、合同(HT)
      * @param redisTemplate code后四位根据redis自增生成
      * @param expire        生成自增后的失效时间，
-     * @return  code码
+     * @return code码
      */
-    public static String generateCode(String prefix, RedisTemplate<String,String> redisTemplate, long expire) {
+    public static String generateCode(String prefix, RedisTemplate<String, String> redisTemplate, long expire) {
         String dateStr = LocalDateTimeUtil.format(LocalDateTime.now(), "yyyyMMddHHmmss");
         String code = prefix + dateStr;
         Long increment = redisTemplate.boundValueOps(code).increment();
         //设置过期时间
-        if(expire == 0) {
+        if (expire == 0) {
             expire = 5;
         }
         redisTemplate.expire(code, expire, TimeUnit.SECONDS);

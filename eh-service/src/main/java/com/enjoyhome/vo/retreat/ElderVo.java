@@ -1,7 +1,7 @@
 package com.enjoyhome.vo.retreat;
 
-import com.fasterxml.jackson.annotation.JsonFormat;
 import com.enjoyhome.base.BaseVo;
+import com.fasterxml.jackson.annotation.JsonFormat;
 import io.swagger.annotations.ApiModel;
 import io.swagger.annotations.ApiModelProperty;
 import lombok.Data;
@@ -29,7 +29,7 @@ public class ElderVo extends BaseVo {
     private String image;
 
     /**
-     * 状态
+     * 状态（0：禁用，1:启用  2:请假 3:退住中 4入住中 5已退住）
      */
     @ApiModelProperty(value = "状态")
     private Integer status;

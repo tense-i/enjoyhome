@@ -2,7 +2,8 @@ package com.enjoyhome.constant;
 
 /**
  * Constants
- * @author itheima
+ *
+ * @author tensei
  **/
 public class Constants {
     /**

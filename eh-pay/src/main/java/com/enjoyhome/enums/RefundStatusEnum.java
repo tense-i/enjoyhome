@@ -5,7 +5,7 @@ import com.fasterxml.jackson.annotation.JsonValue;
 /**
  * 退款状态枚举
  *
- * @author itheima
+ * @author tensei
  * @version 1.0
  */
 public enum RefundStatusEnum {

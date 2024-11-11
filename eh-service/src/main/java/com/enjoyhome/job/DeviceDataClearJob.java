@@ -7,7 +7,7 @@ import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Component;
 
 /**
- * @author itheima
+ * @author tensei
  */
 @Component
 @Log
@@ -18,7 +18,7 @@ public class DeviceDataClearJob {
 
 
     @XxlJob("clearDeviceDataJob")
-    public void clearDeviceDataJob(){
+    public void clearDeviceDataJob() {
         log.info("设备上报数据,定时清理开始....");
         deviceDataMapper.clearDeviceDataJob();
         log.info("设备上报数据,定时清理结束....");

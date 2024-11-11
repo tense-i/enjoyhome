@@ -7,13 +7,15 @@ import org.apache.ibatis.annotations.Update;
 
 /**
  * 活动信息表
- * @author itheima
+ *
+ * @author tensei
  */
 @Mapper
 public interface HiActinstMapper {
 
     /**
      * 删除活动历史信息，在任意跳转和
+     *
      * @param taskId
      */
     @Delete("delete from ACT_HI_ACTINST  where task_id_ = #{taskId}")

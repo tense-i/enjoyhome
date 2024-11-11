@@ -8,16 +8,16 @@ import java.math.BigDecimal;
 import java.time.LocalDateTime;
 
 /**
-* @author itheima
-*/
+ * @author tensei
+ */
 @Data
 @ApiModel(description = "退住账单实体类")
 public class RetreatBill implements Serializable {
     private static final long serialVersionUID = 1L;
 
     /**
-    * 主键
-    */
+     * 主键
+     */
     private Long id;
 
     /**

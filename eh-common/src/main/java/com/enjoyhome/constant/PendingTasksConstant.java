@@ -1,7 +1,7 @@
 package com.enjoyhome.constant;
 
 /**
- * @author itheima
+ * @author tensei
  */
 public class PendingTasksConstant {
 
@@ -19,13 +19,11 @@ public class PendingTasksConstant {
 
     /**
      * 是否处理完成
-     *  0:未处理
-     *  1:已处理
+     * 0:未处理
+     * 1:已处理
      */
     public static final Integer TASK_IS_HANDLE_UNTREATED = 0;
     public static final Integer TASK_IS_HANDLE_FINISHED = 1;
-
-
 
 
 }

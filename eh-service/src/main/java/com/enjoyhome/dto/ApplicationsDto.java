@@ -9,7 +9,7 @@ import lombok.Data;
 import java.time.LocalDateTime;
 
 /**
- * @author itheima
+ * @author tensei
  */
 @Data
 @ApiModel("我的申请DTO")

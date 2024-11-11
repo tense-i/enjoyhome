@@ -4,7 +4,6 @@ import cn.hutool.core.bean.BeanUtil;
 import cn.hutool.core.collection.CollUtil;
 import cn.hutool.core.date.LocalDateTimeUtil;
 import cn.hutool.json.JSONUtil;
-import com.google.common.collect.Lists;
 import com.enjoyhome.constant.Constants;
 import com.enjoyhome.entity.AlertRule;
 import com.enjoyhome.entity.DeviceData;
@@ -16,6 +15,7 @@ import com.enjoyhome.utils.ObjectUtil;
 import com.enjoyhome.vo.DeviceDataVo;
 import com.enjoyhome.vo.DeviceVo;
 import com.enjoyhome.websocket.WebSocketServer;
+import com.google.common.collect.Lists;
 import org.apache.commons.codec.binary.Base64;
 import org.apache.qpid.jms.JmsConnection;
 import org.apache.qpid.jms.JmsConnectionListener;
@@ -48,6 +48,9 @@ import java.util.concurrent.ExecutorService;
 import java.util.concurrent.TimeUnit;
 import java.util.concurrent.atomic.AtomicReference;
 
+/**
+ * AMQP客户端
+ */
 @Component
 public class AmqpClient implements ApplicationRunner {
     private final static Logger logger = LoggerFactory.getLogger(AmqpClient.class);
@@ -74,7 +77,7 @@ public class AmqpClient implements ApplicationRunner {
     // 指定单个进程启动的连接数
     // 单个连接消费速率有限，请参考使用限制，最大64个连接
     // 连接数和消费速率及rebalance相关，建议每500QPS增加一个连接
-    private static int connectionCount = 4;
+    private static final int connectionCount = 4;
 
     //业务处理异步线程池，线程池参数可以根据您的业务特点调整，或者您也可以用其他异步方式处理接收到的消息。
     @Autowired
@@ -100,7 +103,8 @@ public class AmqpClient implements ApplicationRunner {
             //计算签名，password组装方法，请参见AMQP客户端接入说明文档。
             String signContent = "authId=" + aliIoTConfigProperties.getAccessKeyId() + "&timestamp=" + timeStamp;
             String password = doSign(signContent, aliIoTConfigProperties.getAccessKeySecret(), signMethod);
-            String connectionUrl = "failover:(amqps://" + aliIoTConfigProperties.getHost() + ":5671?amqp.idleTimeout=80000)"
+            String connectionUrl = "failover:(amqps://" + aliIoTConfigProperties.getHost() + ":5671?amqp" +
+                    ".idleTimeout=80000)"
                     + "?failover.reconnectDelay=30";
 
             Hashtable<String, String> hashtable = new Hashtable<>();
@@ -129,7 +133,7 @@ public class AmqpClient implements ApplicationRunner {
         logger.info("amqp  is started successfully, and will exit after server shutdown ");
     }
 
-    private MessageListener messageListener = message -> {
+    private final MessageListener messageListener = message -> {
         try {
             //异步处理收到的消息，确保onMessage函数里没有耗时逻辑
             executorService.submit(() -> processMessage(message));
@@ -209,6 +213,7 @@ public class AmqpClient implements ApplicationRunner {
 
     /**
      * 告警过滤
+     *
      * @param key     物模型key  比如 心率：HeartRate
      * @param value   物模型数据是一个Item对象（value,time）
      * @param content 接收到的所有数据
@@ -220,7 +225,8 @@ public class AmqpClient implements ApplicationRunner {
         AtomicReference<Integer> finalStatus = new AtomicReference<>(0);
 
         //查询产品下所有的设备报警规则
-        List<AlertRule> alertRules = alertRuleMapper.selectByFunctionId(key, content.getIotId(), content.getProductKey());
+        List<AlertRule> alertRules = alertRuleMapper.selectByFunctionId(key, content.getIotId(),
+                content.getProductKey());
         List<AlertRule> allDeviceAlertRules = alertRuleMapper.selectByFunctionId(key, "-1", content.getProductKey());
         alertRules.addAll(allDeviceAlertRules);
 
@@ -242,10 +248,12 @@ public class AmqpClient implements ApplicationRunner {
             LocalDateTime time = LocalDateTimeUtil.of(value.getTime());
 
             //报警生效时段-开始时间
-            LocalDateTime startTime = LocalDateTime.of(time.toLocalDate(), LocalTime.parse(aepArr[0], DateTimeFormatter.ISO_LOCAL_TIME));
+            LocalDateTime startTime = LocalDateTime.of(time.toLocalDate(), LocalTime.parse(aepArr[0],
+                    DateTimeFormatter.ISO_LOCAL_TIME));
 
             //报警生效时段-结束时间
-            LocalDateTime endTime = LocalDateTime.of(time.toLocalDate(), LocalTime.parse(aepArr[1], DateTimeFormatter.ISO_LOCAL_TIME));
+            LocalDateTime endTime = LocalDateTime.of(time.toLocalDate(), LocalTime.parse(aepArr[1],
+                    DateTimeFormatter.ISO_LOCAL_TIME));
 
             //如果上报数据不在生效时段，则停止检查
             if (startTime.isAfter(time) || endTime.isBefore(time)) {
@@ -312,13 +320,15 @@ public class AmqpClient implements ApplicationRunner {
                     redisTemplate.delete(aggCountkey);
 
                     // 转化为告警沉默周期
-                    redisTemplate.opsForValue().set(slientCacheKey, value.getValue() + "", Integer.parseInt(Optional.of(alertRule.getRemark()).orElse("5")), TimeUnit.MINUTES);
+                    redisTemplate.opsForValue().set(slientCacheKey, value.getValue() + "",
+                            Integer.parseInt(Optional.of(alertRule.getRemark()).orElse("5")), TimeUnit.MINUTES);
                     finalStatus.set(2);
                     return;
                 }
 
                 // 第一次异常 不满足告警条件持续周期次数 则新增采样时间
-                redisTemplate.opsForValue().set(aggCountkey, 1 + "", alertRule.getDataAggregationPeriod() * alertRule.getDuration(), TimeUnit.MINUTES);
+                redisTemplate.opsForValue().set(aggCountkey, 1 + "",
+                        (long) alertRule.getDataAggregationPeriod() * alertRule.getDuration(), TimeUnit.MINUTES);
                 redisTemplate.opsForValue().set(aggTimeKey, value.getTime() + "");
                 return;
             }
@@ -338,7 +348,8 @@ public class AmqpClient implements ApplicationRunner {
 
             // 新增异常次数
             int count = Integer.parseInt(aggCountData) + 1;
-            redisTemplate.opsForValue().set(aggCountkey, count + "", alertRule.getDataAggregationPeriod() * alertRule.getDuration(), TimeUnit.MINUTES);
+            redisTemplate.opsForValue().set(aggCountkey, count + "",
+                    (long) alertRule.getDataAggregationPeriod() * alertRule.getDuration(), TimeUnit.MINUTES);
 
             // 异常次数是否满足持续周期
             if (count != alertRule.getDuration()) {
@@ -353,14 +364,15 @@ public class AmqpClient implements ApplicationRunner {
             redisTemplate.delete(aggCountkey);
 
             // 转化为告警沉默周期
-            redisTemplate.opsForValue().set(slientCacheKey, value.getValue() + "", Integer.parseInt(alertRule.getRemark()), TimeUnit.MINUTES);
+            redisTemplate.opsForValue().set(slientCacheKey, value.getValue() + "",
+                    Integer.parseInt(alertRule.getRemark()), TimeUnit.MINUTES);
             //数据设置为待处理状态
             finalStatus.set(2);
         });
         return finalStatus.get();
     }
 
-    private JmsConnectionListener myJmsConnectionListener = new JmsConnectionListener() {
+    private final JmsConnectionListener myJmsConnectionListener = new JmsConnectionListener() {
         /**
          * 连接成功建立。
          */

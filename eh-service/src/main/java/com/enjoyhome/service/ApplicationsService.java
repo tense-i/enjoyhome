@@ -6,16 +6,17 @@ import com.enjoyhome.dto.ApplicationsDto;
 import com.enjoyhome.vo.ApplicationsVo;
 
 /**
-* <p>
-* applications Service 接口
-* </p>
-*
-* @author itheima
-*/
+ * <p>
+ * applications Service 接口
+ * </p>
+ *
+ * @author tensei
+ */
 public interface ApplicationsService {
 
     /**
      * 分页查询我的申请
+     *
      * @param applicationsDto
      * @return
      */

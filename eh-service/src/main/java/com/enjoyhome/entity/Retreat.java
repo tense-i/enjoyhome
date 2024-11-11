@@ -10,7 +10,7 @@ import org.apache.ibatis.type.Alias;
 import java.time.LocalDateTime;
 
 /**
- * @author itheima
+ * @author tensei
  */
 @Data
 @ApiModel(description = "退住实体类")
@@ -145,13 +145,13 @@ public class Retreat extends BaseEntity {
     private LocalDateTime createTime;
     /**
      * 流程状态
-     *  0:申请退住
-     *  1:申请审批
-     *  2:解除合同
-     *  3:调整账单
-     *  4:账单审批
-     *  5:退住审批
-     *  6:费用算清
+     * 0:申请退住
+     * 1:申请审批
+     * 2:解除合同
+     * 3:调整账单
+     * 4:账单审批
+     * 5:退住审批
+     * 6:费用算清
      */
     @ApiModelProperty(value = "流程状态")
     private Integer flowStatus;
@@ -160,9 +160,10 @@ public class Retreat extends BaseEntity {
      */
     @ApiModelProperty(value = "状态")
     private Integer status;
+
     //状态枚举类
     @Alias("RetreatFolwStatus")
-    public enum FlowStatus{
+    public enum FlowStatus {
         APPLY(0),
         APPLY_APPROVAL(1),
         RESCISSION_CONTRACT(2),
@@ -171,25 +172,29 @@ public class Retreat extends BaseEntity {
         RETREAT_APPROVAL(5),
         BILL_SETTLEMENT(6);
         Integer code;
-        FlowStatus(Integer code){
+
+        FlowStatus(Integer code) {
             this.code = code;
         }
-        public Integer getCode(){
+
+        public Integer getCode() {
             return this.code;
         }
     }
 
     //状态枚举类
     @Alias("RetreatStatus")
-    public enum Status{
+    public enum Status {
         APPLICATION(1),
         FINISHED(2),
         CLOSED(3);
         Integer code;
-        Status(Integer code){
+
+        Status(Integer code) {
             this.code = code;
         }
-        public Integer getCode(){
+
+        public Integer getCode() {
             return this.code;
         }
     }

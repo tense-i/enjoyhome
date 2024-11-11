@@ -87,8 +87,15 @@ public class ActFlowCommServiceImpl implements ActFlowCommService {
         System.out.println("流程部署名称：" + deployment.getName());
     }
 
+
     /**
      * 启动流程实例
+     *
+     * @param formKey      标识用户任务表单的标识符
+     * @param variables    流程变量
+     * @param bussinessKey 用于将流程实例与业务数据关联的标识符
+     * @param id           业务数据id
+     * @return 流程实例
      */
     @Override
     public ProcessInstance startProcess(String formKey, Map<String, Object> variables, String bussinessKey, Long id) {
@@ -103,19 +110,20 @@ public class ActFlowCommServiceImpl implements ActFlowCommService {
     }
 
     /**
-     * 查看个人任务列表
+     * 查看个人任务列表.
      */
     @Override
     public List<Map<String, Object>> myTaskList(String userid) {
 
         /**
-         * 根据负责人id  查询任务
+         * 创建一个任务查询对象，过滤出指定用户（userid）负责的任务
          */
         TaskQuery taskQuery = taskService.createTaskQuery().taskAssignee(userid);
 
         List<Task> list = taskQuery.orderByTaskCreateTime().desc().list();
 
         List<Map<String, Object>> listmap = new ArrayList<Map<String, Object>>();
+        // 遍历所有任务、封装数据
         for (Task task : list) {
             Map<String, Object> map = new HashMap<String, Object>();
             map.put("taskid", task.getId());
@@ -142,6 +150,7 @@ public class ActFlowCommServiceImpl implements ActFlowCommService {
 
     /**
      * 查看个人任务信息
+     *
      * @param pendingTasksDto
      */
     @Override
@@ -155,23 +164,27 @@ public class ActFlowCommServiceImpl implements ActFlowCommService {
         if (ObjectUtil.isNotEmpty(pendingTasksDto.getIsHandle())) {
             //是否是待处理
             if (pendingTasksDto.getIsHandle() == 1) {
-                taskQuery.finished();
+                taskQuery.finished();// 查询已经完成的任务
             } else {
-                taskQuery.unfinished();
+                taskQuery.unfinished();// 查询未完成的任务
             }
         }
 
         //判断是我的申请还是我的待办
         if (ObjectUtil.isNotEmpty(pendingTasksDto.getApplicatId())) {
-            taskQuery.taskAssignee(pendingTasksDto.getApplicatId().toString());
-            taskQuery.processVariableValueEquals("assignee0", pendingTasksDto.getApplicatId());
-            taskQuery.taskNameLike("%申请");
+            // 申请人id不为空、查询我的申请
+            taskQuery.taskAssignee(pendingTasksDto.getApplicatId().toString());//过滤只有当前用户的任务
+            // 申请id
+            taskQuery.processVariableValueEquals("assignee0", pendingTasksDto.getApplicatId());// 代理人为当前用户
+            taskQuery.taskNameLike("%申请");//查询申请的任务
         } else {
+            // 代理人id不为空、查询我的待办
             taskQuery.taskAssignee(pendingTasksDto.getAssigneeId().toString());
-            taskQuery.taskNameLike("%处理");
+            taskQuery.taskNameLike("%处理");//查询要处理的任务
         }
         //时间范围
         if (ObjectUtil.isNotEmpty(pendingTasksDto.getStartTime()) && ObjectUtil.isNotEmpty(pendingTasksDto.getEndTime())) {
+            // 过滤时间范围
             taskQuery.taskCreatedAfter(pendingTasksDto.getStartTime()).taskCreatedBefore(pendingTasksDto.getEndTime());
         }
         //单据类别（1：退住，2：请假，3：入住）
@@ -192,15 +205,17 @@ public class ActFlowCommServiceImpl implements ActFlowCommService {
             taskQuery.processVariableValueLike("assignee0Name", "%" + pendingTasksDto.getApplicat() + "%");
         }
 
-        //统计条数
+        //对前面过滤后的数据统计条数
         long count = taskQuery.count();
         //执行查询
-        List<HistoricTaskInstance> list = taskQuery.includeProcessVariables().orderByHistoricTaskInstanceStartTime().desc().listPage((pendingTasksDto.getPageNum() - 1) * pendingTasksDto.getPageSize(), pendingTasksDto.getPageSize());
+        List<HistoricTaskInstance> list =
+                taskQuery.includeProcessVariables().orderByHistoricTaskInstanceStartTime().desc().listPage((pendingTasksDto.getPageNum() - 1) * pendingTasksDto.getPageSize(), pendingTasksDto.getPageSize());
 
 
         //log.info(" 任务查询 {} " , taskQuery);
         //封装数据
         List<PendingTasks> pendingTasks = new ArrayList<>();
+        // 遍历所有任务、封装数据到pendingTasks
         for (HistoricTaskInstance task : list) {
 
             Map<String, Object> variableInstances = task.getProcessVariables();
@@ -228,7 +243,8 @@ public class ActFlowCommServiceImpl implements ActFlowCommService {
                 .sorted(Comparator.comparing(PendingTasks::getApplicationTime).reversed())
                 .collect(Collectors.toList());
         //数据返回，逻辑分页
-        return PageResponse.of(tasks, pendingTasksDto.getPageNum(), pendingTasksDto.getPageSize(), (count + pendingTasksDto.getPageSize() - 1) / pendingTasksDto.getPageSize(), count);
+        return PageResponse.of(tasks, pendingTasksDto.getPageNum(), pendingTasksDto.getPageSize(),
+                (count + pendingTasksDto.getPageSize() - 1) / pendingTasksDto.getPageSize(), count);
     }
 
     private LocalDateTime getStartTime(Long id, Integer type) {
@@ -242,6 +258,12 @@ public class ActFlowCommServiceImpl implements ActFlowCommService {
 
     /**
      * 完成提交任务
+     *
+     * @param title
+     * @param taskId 当前任务id
+     * @param userId 养老顾问
+     * @param code
+     * @param status
      */
     @Override
     public void completeProcess(String title, String taskId, String userId, Integer code, Integer status) {
@@ -256,16 +278,21 @@ public class ActFlowCommServiceImpl implements ActFlowCommService {
 
         //任务对象  获取流程实例Id
         String processInstanceId = task.getProcessInstanceId();
-
+        //添加批注信息
         Authentication.setAuthenticatedUserId(userId);
 
-        HistoricTaskInstanceQuery historicTaskInstanceQuery = historyService.createHistoricTaskInstanceQuery().processInstanceId(processInstanceId);
+        //查询将只返回与指定 processInstanceId 相关的历史任务实例
+        HistoricTaskInstanceQuery historicTaskInstanceQuery =
+                historyService.createHistoricTaskInstanceQuery().processInstanceId(processInstanceId);
         List<HistoricTaskInstance> list = historicTaskInstanceQuery.list();
         if (CollUtil.isNotEmpty(list)) {
+            // 遍历历史任务实例
             list.forEach(v -> {
+                // 如何当前历史任务是当前任务的下一个任务，删除当前历史任务（待养老顾问重新提交、既重做）
                 if (v.getFormKey().equals((Integer.parseInt(task.getFormKey()) + 1) + "")) {
                     historyService.deleteHistoricTaskInstance(v.getId());
                 }
+                // code=3并且当前历史实例是第一步、则驳回申请，删除当前历史任务
                 if (code.equals(3) && (v.getFormKey().equals("0"))) {
                     historyService.deleteHistoricTaskInstance(v.getId());
                 }
@@ -279,28 +306,46 @@ public class ActFlowCommServiceImpl implements ActFlowCommService {
         if (ObjectUtil.isNotEmpty(title)) {
             variables.put("processTitle", title);
         }
+        // 设置流程变量
         variables.put("ops", code);
+        // 完成当前任务
         taskService.complete(taskId, variables);
     }
 
+    /**
+     * 启动流程
+     *
+     * @param id
+     * @param formKey      标识用户任务表单的标识符
+     * @param user
+     * @param variables
+     * @param autoFinished 是否自动完成
+     */
     @Override
     public void start(Long id, String formKey, User user, Map<String, Object> variables, boolean autoFinished) {
         //使用流程变量设置字符串（格式 ： Evection:Id 的形式）
         //使用正在执行对象表中的一个字段BUSINESS_KEY(Activiti提供的一个字段)，让启动的流程（流程实例）关联业务
-        String bussinessKey = formKey + ":" + id;
+        // bussinessKey 是一个用于将流程实例与业务数据关联的标识符。它通常是一个唯一的字符串，能够标识业务实体
+        String bussinessKey = formKey + ":" + id;// 关联唯一流程实例
+        // 启动流程\流程实例
         ProcessInstance processInstance = startProcess(formKey, variables, bussinessKey, id);
         //	流程实例ID
         String processDefinitionId = processInstance.getProcessDefinitionId();
         log.info("processDefinitionId is {}", processDefinitionId);
+        //    查询当前用户的所有任务
         List<Map<String, Object>> taskList = myTaskList(user.getId().toString());
         if (!CollectionUtils.isEmpty(taskList)) {
             for (Map<String, Object> map : taskList) {
+                // 如果当前用户是任务的办理人、并且当前遍历的任务是当前启动的流程的任务
                 if (map.get("assignee").toString().equals(user.getId().toString()) &&
                         map.get("processDefinitionId").toString().equals(processDefinitionId)) {
                     log.info("processDefinitionId is {}", map.get("processDefinitionId").toString());
                     log.info("taskid is {}", map.get("taskid").toString());
                     if (autoFinished) {
-                        completeProcess("", map.get("taskid").toString(), user.getId().toString(), 1, PendingTasksConstant.TASK_STATUS_APPLICATION);
+                        // 自动处理任务
+                        // 完成任务
+                        completeProcess("", map.get("taskid").toString(), user.getId().toString(), 1,
+                                PendingTasksConstant.TASK_STATUS_APPLICATION);
                     }
                 }
 
@@ -310,8 +355,8 @@ public class ActFlowCommServiceImpl implements ActFlowCommService {
 
     /**
      * 撤销思路
-     *  - 设置流程变量为已结束
-     *  - 删除流程实例
+     * - 设置流程变量为已结束
+     * - 删除流程实例
      *
      * @param taskId 任务id
      * @param status 状态 1申请中 2已完成 3已关闭
@@ -319,12 +364,14 @@ public class ActFlowCommServiceImpl implements ActFlowCommService {
     @Override
     public void closeProcess(String taskId, Integer status) {
 
-        HistoricTaskInstance historicTaskInstance = historyService.createHistoricTaskInstanceQuery().taskId(taskId).singleResult();
+        HistoricTaskInstance historicTaskInstance =
+                historyService.createHistoricTaskInstanceQuery().taskId(taskId).singleResult();
         // 从任务中拿到流程实例id
         String processInstanceId = historicTaskInstance.getProcessInstanceId();
 
         //设置流程变量
-        String executionId = taskService.createTaskQuery().processInstanceId(processInstanceId).list().get(0).getExecutionId();
+        String executionId =
+                taskService.createTaskQuery().processInstanceId(processInstanceId).list().get(0).getExecutionId();
         // 设置参数
         Map<String, Object> variable = new HashMap<>();
         // 设置为已关闭
@@ -332,7 +379,7 @@ public class ActFlowCommServiceImpl implements ActFlowCommService {
         //记录流程变量
         runtimeService.setVariables(executionId, variable);
         //删除流程实例
-        runtimeService.deleteProcessInstance(processInstanceId,"申请人撤销");
+        runtimeService.deleteProcessInstance(processInstanceId, "申请人撤销");
 
     }
 
@@ -340,28 +387,35 @@ public class ActFlowCommServiceImpl implements ActFlowCommService {
      * 是否查看当前审核用户的任务
      *
      * @param taskId
-     * @param status
+     * @param status  查询的流程状态
      * @param checkIn
      * @return
      */
     @Override
     public Integer isCurrentUserAndStep(String taskId, Integer status, CheckIn checkIn) {
-        HistoricTaskInstance historicTaskInstance = historyService.createHistoricTaskInstanceQuery().taskId(taskId).singleResult();
+        // 根据任务id查询历史任务实例
+        HistoricTaskInstance historicTaskInstance =
+                historyService.createHistoricTaskInstanceQuery().taskId(taskId).singleResult();
+        // 查询的状态与当前状态一致且为进行中
         if (checkIn.getFlowStatus().equals(status) && checkIn.getStatus().equals(CheckIn.Status.APPLICATION.getCode())) {
+            // 与历史任务实例的表单key一致
             if (historicTaskInstance.getFormKey().equals(checkIn.getFlowStatus().toString())) {
                 return 1;
             }
             return 0;
         }
+        // 状态不一致，但是状态为进行中
         if (historicTaskInstance.getFormKey().equals((checkIn.getFlowStatus() - 1) + "") && checkIn.getStatus().equals(CheckIn.Status.APPLICATION.getCode())) {
             return 2;
         }
+        // 状态不一致，且状态不为进行中
         return 3;
     }
 
 
     /**
      * 是否查看当前审核用户的任务
+     *
      * @param taskId
      * @param status
      * @param retreat
@@ -369,7 +423,8 @@ public class ActFlowCommServiceImpl implements ActFlowCommService {
      */
     @Override
     public Integer isCurrentUserAndStep(String taskId, Integer status, Retreat retreat) {
-        HistoricTaskInstance historicTaskInstance = historyService.createHistoricTaskInstanceQuery().taskId(taskId).singleResult();
+        HistoricTaskInstance historicTaskInstance =
+                historyService.createHistoricTaskInstanceQuery().taskId(taskId).singleResult();
         if (retreat.getFlowStatus().equals(status) && retreat.getStatus().equals(CheckIn.Status.APPLICATION.getCode())) {
             if (historicTaskInstance.getFormKey().equals(retreat.getFlowStatus().toString())) {
                 return 1;
@@ -385,6 +440,7 @@ public class ActFlowCommServiceImpl implements ActFlowCommService {
 
     /**
      * 驳回任务
+     *
      * @param taskId
      * @param first  是否默认退回流程第一个节点，true 是,false默认是上一个节点
      */
@@ -423,7 +479,8 @@ public class ActFlowCommServiceImpl implements ActFlowCommService {
      */
     @Override
     public void anyJump(String taskId, boolean first) {
-        HistoricTaskInstance historicTaskInstance = historyService.createHistoricTaskInstanceQuery().taskId(taskId).singleResult();
+        HistoricTaskInstance historicTaskInstance =
+                historyService.createHistoricTaskInstanceQuery().taskId(taskId).singleResult();
         //实例定义id：checkIn:1:0f97a26d-5697-11ee-bf3f-5405db5be13e
         String processDefinitionId = historicTaskInstance.getProcessDefinitionId();
         //实例id：16ea626d-5755-11ee-849a-5405db5be13e
@@ -474,7 +531,8 @@ public class ActFlowCommServiceImpl implements ActFlowCommService {
                 hiActinstMapper.deleteHiActivityInstByTaskId(taskId);
             } else {
                 // 撤回 删除第一个
-                List<HistoricTaskInstance> list1 = historyService.createHistoricTaskInstanceQuery().processInstanceId(processInstanceId).finished().orderByTaskCreateTime().asc().list();
+                List<HistoricTaskInstance> list1 =
+                        historyService.createHistoricTaskInstanceQuery().processInstanceId(processInstanceId).finished().orderByTaskCreateTime().asc().list();
                 if (CollUtil.isNotEmpty(list1)) {
                     HistoricTaskInstance firstTask = list1.get(0);
                     historyService.deleteHistoricTaskInstance(firstTask.getId());
@@ -487,11 +545,12 @@ public class ActFlowCommServiceImpl implements ActFlowCommService {
 
     /**
      * 把一个任务动态转向目标节点
-     * @param process   目标节点
-     * @param task  当前任务
+     *
+     * @param process            目标节点
+     * @param task               当前任务
      * @param taskId             当前任务id
-     * @param targetSequenceFlow  目标节点所有连线
-     * @param first  默认flase，找上一个节点
+     * @param targetSequenceFlow 目标节点所有连线
+     * @param first              默认flase，找上一个节点
      */
     private void trunToTarget(Process process, TaskInfo task, String
             taskId, List<SequenceFlow> targetSequenceFlow, boolean first) {
@@ -540,7 +599,8 @@ public class ActFlowCommServiceImpl implements ActFlowCommService {
     private HistoricActivityInstance getRejectTargetActivity(String taskId, String processInstanceId, boolean first) {
 
         HistoricActivityInstance targetActivity = null;
-        HistoricActivityInstanceQuery query = historyService.createHistoricActivityInstanceQuery().processInstanceId(processInstanceId).activityType("userTask");
+        HistoricActivityInstanceQuery query =
+                historyService.createHistoricActivityInstanceQuery().processInstanceId(processInstanceId).activityType("userTask");
 
         // 取得所有历史任务按时间降序排序
         List<HistoricActivityInstance> historicActivityInstances = null;

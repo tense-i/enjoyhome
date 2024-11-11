@@ -44,7 +44,7 @@ import java.util.Map;
 import java.util.stream.Collectors;
 
 /**
- * @author itheima
+ * @author tensei
  */
 @Service
 public class RetreatServiceImpl implements RetreatService {
@@ -71,6 +71,7 @@ public class RetreatServiceImpl implements RetreatService {
 
     /**
      * 退住申请
+     *
      * @param retreat
      */
     @Override
@@ -114,7 +115,7 @@ public class RetreatServiceImpl implements RetreatService {
             billDto.setBillMonth(format);
             try {
                 billService.createMonthBill(billDto);
-            }catch (Exception e) {
+            } catch (Exception e) {
                 e.printStackTrace();
             }
             firstDayOfMonth = firstDayOfMonth.plusMonths(1);
@@ -164,8 +165,9 @@ public class RetreatServiceImpl implements RetreatService {
             elderMapper.updateByPrimaryKeySelective(elder);
         }
         if (ObjectUtil.isNotEmpty(retreat.getTaskId())) {
-            actFlowCommService.completeProcess(retreat.getTitle(), retreat.getTaskId(), user.getId().toString(), 1, retreat.getStatus());
-        }else {
+            actFlowCommService.completeProcess(retreat.getTitle(), retreat.getTaskId(), user.getId().toString(), 1,
+                    retreat.getStatus());
+        } else {
             Map<String, Object> setvariables = setvariables(retreat.getRetreatCode());
             actFlowCommService.start(retreat.getId(), "retreat", user, setvariables, true);
         }
@@ -187,16 +189,18 @@ public class RetreatServiceImpl implements RetreatService {
 
     /**
      * 获取操作记录数据
-     * @param retreat  退住对象
-     * @param user  当前登录用户
-     * @param status  审核状态
-     * @param option  操作意见
-     * @param step    当前步骤
-     * @param nextStep   下一步说明
-     * @param nextAssignee  下一个审核人
+     *
+     * @param retreat      退住对象
+     * @param user         当前登录用户
+     * @param status       审核状态
+     * @param option       操作意见
+     * @param step         当前步骤
+     * @param nextStep     下一步说明
+     * @param nextAssignee 下一个审核人
      * @return
      */
-    private RecoreVo getRecoreVo(Retreat retreat, User user, Integer status, String option, String step, String nextStep, Long nextAssignee,Integer handleType){
+    private RecoreVo getRecoreVo(Retreat retreat, User user, Integer status, String option, String step,
+                                 String nextStep, Long nextAssignee, Integer handleType) {
         RecoreVo recoreVo = new RecoreVo();
         recoreVo.setId(retreat.getId());
         recoreVo.setType(AccraditationRecordConstant.RECORD_TYPE_RETREAT);
@@ -227,7 +231,7 @@ public class RetreatServiceImpl implements RetreatService {
 
     public Map<String, Object> setvariables(String id) {
         //设置流程变量
-        Map<String,Object> variables = new HashMap<>();
+        Map<String, Object> variables = new HashMap<>();
 
         // 护理员
         Retreat retreat = retreatMapper.getRetreatByCode(id);
@@ -241,17 +245,17 @@ public class RetreatServiceImpl implements RetreatService {
         Dept dept = deptMapper.selectByDeptNo(RetreatConstant.NURSING_DEPT_CODE);
         //部门领导id
         Long leaderId = dept.getLeaderId();
-        variables.put("assignee1",leaderId);
+        variables.put("assignee1", leaderId);
 
         // 法务员工
         //设置下一个审核人
         //找到法务部门编号--->通过编号查询法务中所有的员工（非leader）---->获取第一个人，找到这个人的id,然后查询对应的角色
         List<Long> legatUserIds = userMapper.selectByDeptNo(RetreatConstant.LEGAL_DEPT_CODE);
-        variables.put("assignee2",legatUserIds.get(legatUserIds.size() - 1));
+        variables.put("assignee2", legatUserIds.get(legatUserIds.size() - 1));
 
         // 结算员
         List<Long> jsUserIds = userMapper.selectByDeptNo(RetreatConstant.SETTLEMENT_DEPT_CODE);
-        variables.put("assignee3",jsUserIds.get(jsUserIds.size() - 1));
+        variables.put("assignee3", jsUserIds.get(jsUserIds.size() - 1));
 
         // 结算组长
         Dept jsDept = deptMapper.selectByDeptNo(RetreatConstant.SETTLEMENT_DEPT_CODE);
@@ -279,6 +283,7 @@ public class RetreatServiceImpl implements RetreatService {
 
     /**
      * 查询退住信息
+     *
      * @param retreatCode 退住单号
      * @param assigneeId  审核人
      * @return
@@ -294,7 +299,9 @@ public class RetreatServiceImpl implements RetreatService {
         //查询退住单数据
         Retreat retreat = retreatMapper.getRetreatByCode(retreatCode);
         //审批记录数据
-        List<AccraditationRecord> accraditationRecordList = accraditationRecordMapper.getAccraditationRecordByBuisId(retreat.getId(), PendingTasksConstant.TASK_TYPE_RETREAT);
+        List<AccraditationRecord> accraditationRecordList =
+                accraditationRecordMapper.getAccraditationRecordByBuisId(retreat.getId(),
+                        PendingTasksConstant.TASK_TYPE_RETREAT);
         vo.setAccraditationRecords(accraditationRecordList);
         vo.setRetreat(retreat);
         //默认显示退住数据
@@ -314,7 +321,7 @@ public class RetreatServiceImpl implements RetreatService {
             vo.setIsRevocation(true);
         }
 
-        if (flowStatus < 0 ) {
+        if (flowStatus < 0) {
             flowStatus = retreat.getFlowStatus();
         }
 
@@ -354,7 +361,8 @@ public class RetreatServiceImpl implements RetreatService {
         //如果状态为3:结算员调整账单，则需要查询账单列表
         if (dbFlowstatus.equals(Retreat.FlowStatus.RECONCILIATION_BILL.getCode())) {
             //账单列表
-            RetreatBillVo retreatBillVo = billService.retreatSettlement(retreat.getElderId(), retreat.getCheckOutTime(), retreat.getStatus());
+            RetreatBillVo retreatBillVo = billService.retreatSettlement(retreat.getElderId(),
+                    retreat.getCheckOutTime(), retreat.getStatus());
             vo.setRetreatBillVo(retreatBillVo);
         }
 
@@ -386,14 +394,16 @@ public class RetreatServiceImpl implements RetreatService {
                 }
             } else {
                 //退款金额、预缴款金额
-                RetreatBillVo retreatBillVo = billService.retreatSettlement(retreat.getElderId(), retreat.getCheckOutTime(), retreat.getStatus());
+                RetreatBillVo retreatBillVo = billService.retreatSettlement(retreat.getElderId(),
+                        retreat.getCheckOutTime(), retreat.getStatus());
                 vo.setRetreatBillVo(retreatBillVo);
             }
 
         }
 
         vo.setType(1);
-        AccraditationRecord accraditationRecord = accraditationRecordMapper.getLastByBuisId(retreat.getId(), PendingTasksConstant.TASK_TYPE_RETREAT);
+        AccraditationRecord accraditationRecord = accraditationRecordMapper.getLastByBuisId(retreat.getId(),
+                PendingTasksConstant.TASK_TYPE_RETREAT);
         if (ObjectUtil.isNotEmpty(accraditationRecord)) {
             vo.setNextApprover(accraditationRecord.getNextApproverRole());
         }
@@ -554,7 +564,8 @@ public class RetreatServiceImpl implements RetreatService {
                 //押金备注
                 retreatClearingBillDto.setDepositRemark(balanceVo.getRemark());
                 //押金扣减金额
-                retreatClearingBillDto.setDepositDeductions(depositDeductions.compareTo(BigDecimal.ZERO) == 1 ? depositDeductions : new BigDecimal(0));
+                retreatClearingBillDto.setDepositDeductions(depositDeductions.compareTo(BigDecimal.ZERO) == 1 ?
+                        depositDeductions : new BigDecimal(0));
 
                 //关闭账户，清空数据
                 billService.retreatClearingBill(retreatClearingBillDto);
@@ -677,10 +688,10 @@ public class RetreatServiceImpl implements RetreatService {
         //获取当前的审核步骤
         String step = getCurrentStep(retreat.getFlowStatus());
         //保存审核记录
-        RecoreVo recoreVo = getRecoreVo(retreat,user,
+        RecoreVo recoreVo = getRecoreVo(retreat, user,
                 AccraditationRecordConstant.AUDIT_STATUS_REJECT,
                 reject,
-                step,"",null,AccraditationRecordConstant.RECORD_HANDLE_TYPE_AUDIT);
+                step, "", null, AccraditationRecordConstant.RECORD_HANDLE_TYPE_AUDIT);
         accraditationRecordService.insert(recoreVo);
 
         //如果审核状态大于3，则需要恢复老人合同为生效
@@ -699,6 +710,7 @@ public class RetreatServiceImpl implements RetreatService {
 
     /**
      * 获取当前操作步骤
+     *
      * @param flowStatus
      * @return
      */
@@ -771,10 +783,10 @@ public class RetreatServiceImpl implements RetreatService {
             currentStep = "撤回审批";
         }
         currentStep = currentStep + "-" + getRecordCurrentStep(retreat.getFlowStatus() - 1);
-        RecoreVo recoreVo = getRecoreVo(retreat,user,
-                AccraditationRecordConstant.AUDIT_STATUS_WITHDRAWS,"",
-                currentStep,"",
-                null,AccraditationRecordConstant.RECORD_HANDLE_TYPE_AUDIT);
+        RecoreVo recoreVo = getRecoreVo(retreat, user,
+                AccraditationRecordConstant.AUDIT_STATUS_WITHDRAWS, "",
+                currentStep, "",
+                null, AccraditationRecordConstant.RECORD_HANDLE_TYPE_AUDIT);
         accraditationRecordService.insert(recoreVo);
 
         return ResponseResult.success();
@@ -814,10 +826,10 @@ public class RetreatServiceImpl implements RetreatService {
         actFlowCommService.rollBackTask(taskId, true);
 
         //保存审核记录
-        RecoreVo recoreVo = getRecoreVo(retreat,user,
-                AccraditationRecordConstant.AUDIT_STATUS_DISAPPROVE,message,
-                "驳回申请-" + getRecordCurrentStep(retreat.getFlowStatus()),"",
-                null,AccraditationRecordConstant.RECORD_HANDLE_TYPE_AUDIT);
+        RecoreVo recoreVo = getRecoreVo(retreat, user,
+                AccraditationRecordConstant.AUDIT_STATUS_DISAPPROVE, message,
+                "驳回申请-" + getRecordCurrentStep(retreat.getFlowStatus()), "",
+                null, AccraditationRecordConstant.RECORD_HANDLE_TYPE_AUDIT);
         accraditationRecordService.insert(recoreVo);
 
         return ResponseResult.success();
@@ -842,7 +854,7 @@ public class RetreatServiceImpl implements RetreatService {
         if (retreat == null) {
             throw new BaseException("退住单不存在");
         }
-        retreatMapper.updateRetreatByFlowStatus(retreat.getId(), retreat.getFlowStatus() -1);
+        retreatMapper.updateRetreatByFlowStatus(retreat.getId(), retreat.getFlowStatus() - 1);
         //修改退住单状态为3（已关闭）
         retreatMapper.updateStatus(retreat.getId(), Retreat.Status.CLOSED.getCode());
 
@@ -860,10 +872,10 @@ public class RetreatServiceImpl implements RetreatService {
         actFlowCommService.closeProcess(taskId, PendingTasksConstant.TASK_STATUS_CLOSED);
 
         //保存审核记录
-        RecoreVo recoreVo = getRecoreVo(retreat,user,
-                AccraditationRecordConstant.AUDIT_STATUS_DISAPPROVE,"",
-                "撤销申请-申请退住","",
-                null,AccraditationRecordConstant.RECORD_HANDLE_TYPE_PROCESSED);
+        RecoreVo recoreVo = getRecoreVo(retreat, user,
+                AccraditationRecordConstant.AUDIT_STATUS_DISAPPROVE, "",
+                "撤销申请-申请退住", "",
+                null, AccraditationRecordConstant.RECORD_HANDLE_TYPE_PROCESSED);
         accraditationRecordService.insert(recoreVo);
 
         return ResponseResult.success();
@@ -871,6 +883,7 @@ public class RetreatServiceImpl implements RetreatService {
 
     /**
      * 退住管理列表查询
+     *
      * @return
      */
     @Override

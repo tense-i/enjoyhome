@@ -4,16 +4,17 @@ import com.enjoyhome.dto.CheckInConfigDto;
 import com.enjoyhome.entity.CheckInConfig;
 
 /**
-* <p>
-* check_in_config Service 接口
-* </p>
-*
-* @author itheima
-*/
+ * <p>
+ * check_in_config Service 接口
+ * </p>
+ *
+ * @author tensei
+ */
 public interface CheckInConfigService {
 
     /**
      * 根据老人id查询入住配置
+     *
      * @param elderId
      * @return
      */

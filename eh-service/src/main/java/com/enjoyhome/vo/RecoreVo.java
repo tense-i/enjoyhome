@@ -3,7 +3,9 @@ package com.enjoyhome.vo;
 import lombok.Data;
 
 /**
- * @author itheima
+ * 审核记录类：记录每次审核的记录
+ *
+ * @author tensei
  */
 @Data
 public class RecoreVo {

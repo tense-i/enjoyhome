@@ -11,7 +11,7 @@ import org.apache.ibatis.annotations.Update;
 import java.util.List;
 
 /**
- * @author itheima
+ * @author tensei
  */
 @Mapper
 public interface RetreatMapper {
@@ -25,7 +25,7 @@ public interface RetreatMapper {
     void updateRetreatByFlowStatus(@Param("id") long id, @Param("flowStatus") Integer flowStatus);
 
     @Update("update retreat set status = #{status} where id = #{id}")
-    void updateStatus(@Param("id") Long id,@Param("status") Integer status);
+    void updateStatus(@Param("id") Long id, @Param("status") Integer status);
 
     void update(Retreat retreat);
 

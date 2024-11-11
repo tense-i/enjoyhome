@@ -10,7 +10,7 @@ import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.boot.test.context.SpringBootTest;
 
 /**
- * @author itheima
+ * @author tensei
  */
 @SpringBootTest
 public class IoTDeviceTest {
@@ -24,6 +24,7 @@ public class IoTDeviceTest {
 
     /**
      * 查询公共实例下的所有产品
+     *
      * @throws Exception
      */
     @Test

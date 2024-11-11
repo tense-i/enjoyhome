@@ -7,7 +7,7 @@ import lombok.Data;
 import java.math.BigDecimal;
 
 /**
- * @author itheima
+ * @author tensei
  */
 @Data
 @ApiModel("退款凭证DTO")

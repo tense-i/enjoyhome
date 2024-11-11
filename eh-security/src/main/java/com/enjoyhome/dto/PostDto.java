@@ -8,7 +8,7 @@ import lombok.Data;
 import lombok.NoArgsConstructor;
 
 /**
- * @author itheima
+ * @author tensei
  */
 @Data
 @NoArgsConstructor
@@ -36,7 +36,8 @@ public class PostDto extends BaseDto {
     private String dataState;
 
     @Builder
-    public PostDto(String deptNo, String postNo, String postName, Integer sortNo, String remark, DeptVo deptVo, String dataState) {
+    public PostDto(String deptNo, String postNo, String postName, Integer sortNo, String remark, DeptVo deptVo,
+                   String dataState) {
         this.deptNo = deptNo;
         this.postNo = postNo;
         this.postName = postName;

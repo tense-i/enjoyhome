@@ -6,7 +6,7 @@ import io.swagger.annotations.ApiModelProperty;
 import lombok.Data;
 
 /**
- * @author itheima
+ * @author tensei
  */
 @Data
 @ApiModel(description = "退住实体类")

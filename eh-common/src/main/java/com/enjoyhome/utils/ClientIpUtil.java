@@ -8,7 +8,8 @@ import javax.servlet.http.HttpServletRequest;
 
 /**
  * 请求人的ip
- * @author itheima
+ *
+ * @author tensei
  */
 @Slf4j
 public class ClientIpUtil {

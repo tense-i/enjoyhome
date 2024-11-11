@@ -9,7 +9,7 @@ import java.time.LocalDateTime;
 import java.util.List;
 
 /**
- * @author itheima
+ * @author tensei
  */
 @Data
 @ApiModel(description = "入住实体类")
@@ -80,8 +80,6 @@ public class CheckInDto extends BaseDto {
      */
     @ApiModelProperty(value = "任务ID")
     private String taskId;
-
-
 
 
 }

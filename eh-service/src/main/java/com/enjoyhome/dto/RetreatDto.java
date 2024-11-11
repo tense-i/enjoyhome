@@ -7,7 +7,7 @@ import io.swagger.annotations.ApiModelProperty;
 import lombok.Data;
 
 /**
- * @author itheima
+ * @author tensei
  */
 @Data
 public class RetreatDto {

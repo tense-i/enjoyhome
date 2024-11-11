@@ -4,7 +4,7 @@ import com.enjoyhome.base.PageResponse;
 import com.enjoyhome.base.ResponseResult;
 import com.enjoyhome.dto.PendingTasksDto;
 import com.enjoyhome.entity.PendingTasks;
-import com.enjoyhome.service.impl.ActFlowCommServiceImpl;
+import com.enjoyhome.service.ActFlowCommService;
 import com.enjoyhome.utils.UserThreadLocal;
 import io.swagger.annotations.Api;
 import io.swagger.annotations.ApiOperation;
@@ -15,7 +15,7 @@ import org.springframework.web.bind.annotation.RequestMapping;
 import org.springframework.web.bind.annotation.RestController;
 
 /**
- * @author itheima
+ * @author tensei
  */
 @RestController
 @RequestMapping("/pending_tasks")
@@ -23,16 +23,19 @@ import org.springframework.web.bind.annotation.RestController;
 public class PendingTasksController extends BaseController {
 
     @Autowired
-    private ActFlowCommServiceImpl actFlowCommService;
+    private ActFlowCommService actFlowCommService;
 
     @PostMapping("/selectByPage")
     @ApiOperation(value = "查询待办", notes = "传入退住对象")
-    public ResponseResult<PendingTasks> selectByPage(@RequestBody PendingTasksDto pendingTasksDto){
+    public ResponseResult<PendingTasks> selectByPage(@RequestBody PendingTasksDto pendingTasksDto) {
         //只查询有当前登录人的任务
         Long userId = UserThreadLocal.getMgtUserId();
-        if(pendingTasksDto.getReqType() == 0){
+
+        if (pendingTasksDto.getReqType() == 0) {
+            // 待办：设置代理人id
             pendingTasksDto.setAssigneeId(userId);
-        }else {
+        } else {
+            // 我的任务：设置申请人id
             pendingTasksDto.setApplicatId(userId);
         }
 

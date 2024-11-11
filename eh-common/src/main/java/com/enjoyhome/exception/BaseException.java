@@ -5,7 +5,8 @@ import lombok.Data;
 
 /**
  * BaseException
- * @author itheima
+ *
+ * @author tensei
  **/
 @Data
 public class BaseException extends RuntimeException {

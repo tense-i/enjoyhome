@@ -7,7 +7,9 @@ import lombok.Data;
 import java.util.List;
 
 /**
- * @author itheima
+ * 入住的另一个实体、只包含家属信息和照片
+ *
+ * @author tensei
  */
 @Data
 @ApiModel(description = "入住实体类")
@@ -36,7 +38,6 @@ public class CheckInOtherDto {
      */
     @ApiModelProperty(value = "身份证国徽面")
     private String url3;
-
 
 
 }

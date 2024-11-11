@@ -7,7 +7,7 @@ import lombok.Data;
 /**
  * LoginVO
  *
- * @author itheima
+ * @author tensei
  */
 @Data
 @ApiModel(value = "登录对象")

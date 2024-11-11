@@ -8,7 +8,8 @@ import java.math.BigDecimal;
 
 /**
  * 余额（押金+预缴款）
- * @author itheima
+ *
+ * @author tensei
  */
 @Data
 @ApiModel(description = "余额(押金+预缴款)")

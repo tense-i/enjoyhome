@@ -9,7 +9,7 @@ import lombok.NoArgsConstructor;
 import java.util.Objects;
 
 /**
- * @author itheima
+ * @author tensei
  */
 @Data
 @NoArgsConstructor
@@ -37,7 +37,8 @@ public class DeptDto extends BaseDto {
     private Integer level = 4;
 
     @Builder
-    public DeptDto(String parentDeptNo, String deptNo, String deptName, Integer sortNo, Long leaderId, String dataState, Integer level) {
+    public DeptDto(String parentDeptNo, String deptNo, String deptName, Integer sortNo, Long leaderId,
+                   String dataState, Integer level) {
         this.parentDeptNo = parentDeptNo;
         this.deptNo = deptNo;
         this.deptName = deptName;
@@ -49,7 +50,8 @@ public class DeptDto extends BaseDto {
 
     @Override
     public int hashCode() {
-        int result = Objects.hash(super.hashCode(), getParentDeptNo(), getDeptNo(), getDeptName(), getDataState(), getLeaderId());
+        int result = Objects.hash(super.hashCode(), getParentDeptNo(), getDeptNo(), getDeptName(), getDataState(),
+                getLeaderId());
         return result;
     }
 }

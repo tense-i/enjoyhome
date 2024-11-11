@@ -8,7 +8,8 @@ import org.slf4j.LoggerFactory;
 /**
  * BaseController
  * web层通用数据处理
- * @author itheima
+ *
+ * @author tensei
  **/
 @Api(tags = "基础控制器，提供一些公共方法")
 public class BaseController {

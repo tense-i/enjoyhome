@@ -15,7 +15,8 @@ import java.util.List;
 
 /**
  * 合同管理
- * @author itheima
+ *
+ * @author tensei
  */
 @Slf4j
 @Component
@@ -41,7 +42,7 @@ public class ContractJob {
                 if (contract.getEndTime().isBefore(LocalDateTime.now())) {
                     contract.setStatus(ContractStatusEnum.EXPIRED.getOrdinal());
                     updateList.add(contract);
-                } else if (contract.getStartTime().isBefore(LocalDateTime.now())  && contract.getEndTime().isAfter(LocalDateTime.now())) {
+                } else if (contract.getStartTime().isBefore(LocalDateTime.now()) && contract.getEndTime().isAfter(LocalDateTime.now())) {
                     contract.setStatus(ContractStatusEnum.EFFECTIVE.getOrdinal());
                     effUpdateList.add(contract);
                 }

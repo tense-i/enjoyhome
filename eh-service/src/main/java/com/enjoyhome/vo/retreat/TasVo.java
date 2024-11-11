@@ -11,7 +11,7 @@ import lombok.Data;
 import java.util.List;
 
 /**
- * @author itheima
+ * @author tensei
  */
 @Data
 public class TasVo {
@@ -73,9 +73,6 @@ public class TasVo {
      */
     @ApiModelProperty(value = "最终的账单数据")
     private RetreatBill retreatBill;
-
-
-
 
 
 }

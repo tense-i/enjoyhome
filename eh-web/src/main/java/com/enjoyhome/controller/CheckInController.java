@@ -37,14 +37,14 @@ public class CheckInController {
 
 
     @PostMapping("/create")
-    @ApiOperation(value = "申请入住", notes = "传入入住对象")
+    @ApiOperation(value = "顾问申请入住", notes = "传入入住对象")
     public ResponseResult<CheckInVo> createCheckIn(
             @RequestBody @ApiParam(value = "入住对象", required = true) CheckInDto checkInDto) {
         return checkInService.createCheckIn(checkInDto);
     }
 
     @PostMapping("/review")
-    @ApiOperation(value = "评估", notes = "传入入住对象")
+    @ApiOperation(value = "护理评估", notes = "传入入住对象")
     public ResponseResult<CheckInVo> review(
             @RequestBody @ApiParam(value = "入住对象", required = true) CheckInDto checkInDto) {
         return checkInService.review(checkInDto);
@@ -61,7 +61,7 @@ public class CheckInController {
     }
 
     @PutMapping("/submit")
-    @ApiOperation(value = "同意")
+    @ApiOperation(value = "院长同意")
     public ResponseResult submitCheckIn(
             @RequestParam @ApiParam(value = "入住Id") Long id,
             @RequestParam @ApiParam(value = "审批意见") String message,
@@ -70,7 +70,7 @@ public class CheckInController {
     }
 
     @PutMapping
-    @ApiOperation(value = "驳回")
+    @ApiOperation(value = "院长驳回")
     public ResponseResult disapprove(
             @RequestParam @ApiParam(value = "入住Id") Long id,
             @RequestParam @ApiParam(value = "驳回消息") String message,
@@ -88,7 +88,7 @@ public class CheckInController {
     }
 
     @PutMapping("/revocation")
-    @ApiOperation(value = "撤回")
+    @ApiOperation(value = "院长撤回")
     public ResponseResult revocation(
             @RequestParam @ApiParam(value = "入住Id") Long id,
             @RequestParam @ApiParam(value = "流程状态") Integer flowStatus,
@@ -99,7 +99,7 @@ public class CheckInController {
     @PutMapping("/cancel")
     @ApiOperation(value = "撤销")
     public ResponseResult cancel(@RequestParam @ApiParam(value = "入住Id") Long id,
-                                 @RequestParam @ApiParam(value = "任务ID") String taskId){
+                                 @RequestParam @ApiParam(value = "任务ID") String taskId) {
         return checkInService.cancel(id, taskId);
     }
 
@@ -111,8 +111,8 @@ public class CheckInController {
             @ApiParam(value = "身份证号") @RequestParam(required = false) String idCardNo,
             @ApiParam(value = "开始时间") @RequestParam(required = false) Long startTime,
             @ApiParam(value = "结束时间") @RequestParam(required = false) Long endTime,
-            @ApiParam(value = "页码") @RequestParam(required = true,defaultValue = "1") Integer pageNum,
-            @ApiParam(value = "每页数量") @RequestParam(required = true,defaultValue = "10") Integer pageSize
+            @ApiParam(value = "页码") @RequestParam(required = true, defaultValue = "1") Integer pageNum,
+            @ApiParam(value = "每页数量") @RequestParam(required = true, defaultValue = "10") Integer pageSize
     ) {
         String subject = UserThreadLocal.getSubject();
         UserVo userVo = JSONUtil.toBean(subject, UserVo.class);
@@ -121,16 +121,17 @@ public class CheckInController {
 
         LocalDateTime start = null;
         LocalDateTime end = null;
-        if(startTime != null && endTime != null){
+        if (startTime != null && endTime != null) {
             start = LocalDateTimeUtil.of(startTime);
             end = LocalDateTimeUtil.of(endTime);
         }
 
-        return checkInService.selectByPage(checkInCode, name, idCardNo, start, end, pageNum, pageSize,deptNo, userId);
+        return checkInService.selectByPage(checkInCode, name, idCardNo, start, end, pageNum, pageSize, deptNo, userId);
     }
 
     /**
      * 入住配置
+     *
      * @param checkInConfigDto 入住配置
      * @return 操作结果
      */
@@ -143,6 +144,7 @@ public class CheckInController {
 
     /**
      * 签约办理
+     *
      * @param contractDto 合同信息
      * @return 操作结果
      */

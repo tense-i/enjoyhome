@@ -4,12 +4,12 @@ import com.enjoyhome.entity.RetreatBill;
 import org.apache.ibatis.annotations.*;
 
 /**
-* <p>
-* retreat_bill Mapper 接口
-* </p>
-*
-* @author itheima
-*/
+ * <p>
+ * retreat_bill Mapper 接口
+ * </p>
+ *
+ * @author tensei
+ */
 @Mapper
 public interface RetreatBillMapper {
 
@@ -19,7 +19,7 @@ public interface RetreatBillMapper {
     RetreatBill selectByRetreatId(long retreatId);
 
     @Update("update retreat_bill set  bill_json = #{billJson} where retreat_id = #{retreatId}")
-    void updateBillJsonByRetreatId(@Param("billJson") String billJson, @Param("retreatId")long retreatId);
+    void updateBillJsonByRetreatId(@Param("billJson") String billJson, @Param("retreatId") long retreatId);
 
     @Delete("delete from retreat_bill where retreat_id = #{retreatId} ")
     void deleteByByRetreatId(long id);

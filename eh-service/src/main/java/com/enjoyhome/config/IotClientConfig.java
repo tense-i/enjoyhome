@@ -14,6 +14,8 @@ public class IotClientConfig {
     private AliIoTConfigProperties aliIoTConfigProperties;
 
     /**
+     * 实例化iot客户端
+     *
      * @return
      * @throws Exception
      */

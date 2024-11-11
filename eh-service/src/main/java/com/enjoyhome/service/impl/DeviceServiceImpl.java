@@ -5,7 +5,6 @@ import cn.hutool.core.bean.copier.CopyOptions;
 import cn.hutool.core.collection.CollUtil;
 import com.aliyun.iot20180120.Client;
 import com.aliyun.iot20180120.models.*;
-import com.google.common.collect.Lists;
 import com.enjoyhome.base.PageResponse;
 import com.enjoyhome.dto.DeviceDto;
 import com.enjoyhome.entity.Device;
@@ -14,6 +13,7 @@ import com.enjoyhome.mapper.DeviceMapper;
 import com.enjoyhome.service.DeviceService;
 import com.enjoyhome.utils.ObjectUtil;
 import com.enjoyhome.vo.DeviceVo;
+import com.google.common.collect.Lists;
 import org.springframework.beans.factory.annotation.Value;
 import org.springframework.stereotype.Service;
 
@@ -52,10 +52,13 @@ public class DeviceServiceImpl implements DeviceService {
             QueryProductResponse queryProductResponse = client.queryProduct(productRequest);
             String productName = queryProductResponse.getBody().getData().getProductName();
             device.setProductName(productName);
+            // 保存位置为老人
             if (device.getLocationType().equals(0)) {
+                // 物理位置为空
                 device.setPhysicalLocationType(-1);
             }
             try {
+                // 插入到数据库中
                 deviceMapper.insert(device);
             } catch (Exception e) {
                 DeleteDeviceRequest deleteDeviceRequest = new DeleteDeviceRequest();
@@ -116,21 +119,32 @@ public class DeviceServiceImpl implements DeviceService {
             if (CollUtil.isEmpty(deviceInfo)) {
                 return null;
             }
+            // 所有设备的物联网id
             List<String> list =
                     deviceInfo.stream().map(QueryDeviceResponseBody.QueryDeviceResponseBodyDataDeviceInfo::getIotId).collect(Collectors.toList());
 
+            // 根据物联网id在本地查询设备信息
             List<DeviceVo> devices = deviceMapper.selectByDeviceIds(list);
+
+            // 转化为Map\<String(id), DeviceVo\>
             Map<String, DeviceVo> deviceMap = devices.stream().collect(Collectors.toMap(DeviceVo::getDeviceId, v -> v));
-            List<DeviceVo> vos = deviceInfo.stream().map(v -> {
-                DeviceVo deviceVo = BeanUtil.toBean(v, DeviceVo.class);
-                deviceVo.setDeviceId(v.getIotId());
-                if (ObjectUtil.isNotEmpty(deviceMap) && ObjectUtil.isNotEmpty(deviceMap.get(v.getIotId()))) {
-                    DeviceVo device = deviceMap.get(v.getIotId());
-                    BeanUtil.copyProperties(device, deviceVo);
-                    deviceVo.setIotId(deviceVo.getDeviceId());
-                }
-                return deviceVo;
-            }).collect(Collectors.toList());
+
+
+            // 整合本地数据与阿里云远程数据
+            List<DeviceVo> vos = deviceInfo
+                    .stream()
+                    .map(v -> {
+                        DeviceVo deviceVo = BeanUtil.toBean(v, DeviceVo.class);
+                        deviceVo.setDeviceId(v.getIotId());
+                        // 如果本地数据库中有该设备信息，则覆盖
+                        if (ObjectUtil.isNotEmpty(deviceMap) && ObjectUtil.isNotEmpty(deviceMap.get(v.getIotId()))) {
+                            DeviceVo device = deviceMap.get(v.getIotId());
+                            BeanUtil.copyProperties(device, deviceVo);
+                            deviceVo.setIotId(deviceVo.getDeviceId());
+                        }
+                        return deviceVo;
+                    }).collect(Collectors.toList());
+
             return PageResponse.of(vos, body.getPage(), body.getPageSize(), (long) body.getPageCount(),
                     (long) body.getTotal());
         }

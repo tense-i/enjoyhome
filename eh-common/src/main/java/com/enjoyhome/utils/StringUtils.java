@@ -7,7 +7,8 @@ import java.util.*;
 
 /**
  * StringUtils
- * @author itheima
+ *
+ * @author tensei
  **/
 public class StringUtils extends org.apache.commons.lang3.StringUtils {
     /**
