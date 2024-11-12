@@ -265,8 +265,8 @@ public class AmqpClient implements ApplicationRunner {
             int val = alertRule.getValue().compareTo((float) value.getValue());
 
             //如果告警规则的操作符为 小于 && 阈值 > 上报的数据
-            if (alertRule.getOperator().equals(GREATER_THAN_OR_EQUAL) && val < 0) {
-                status = 1;
+            if (alertRule.getOperator().equals(GREATER_THAN_OR_EQUAL) && val < 0) {// 要求>=阈值、但是<阈值
+                status = 1;// 异常
                 if (finalStatus.get() != 2) {
                     finalStatus.set(1);
                 }
@@ -275,10 +275,13 @@ public class AmqpClient implements ApplicationRunner {
             //如果告警规则的操作符为 小于 && 阈值 < 上报的数据
             if (alertRule.getOperator().equals(LESS_THAN) && val > 0) {
                 status = 1;
+                // 状态不是待处理
                 if (finalStatus.get() != 2) {
+                    // 设置为异常
                     finalStatus.set(1);
                 }
             }
+
             //如果没有触发阈值，则中断匹配
             if (status == 0) {
                 return;
@@ -286,7 +289,6 @@ public class AmqpClient implements ApplicationRunner {
 
             //设备ID
             String deviceId = content.getIotId();
-
             //沉默周期缓存Key
             String slientCacheKey = alertRule.getId() + "_" + deviceId + "_" + key + "_silent";
 
@@ -313,6 +315,7 @@ public class AmqpClient implements ApplicationRunner {
             //判断采样数据是否为空
             if (ObjectUtil.isEmpty(aggTimeData) || ObjectUtil.isEmpty(aggCountData)) {
                 //持续周期为1
+                //一旦发生一次异常就需要触发告警
                 if (alertRule.getDuration().equals(1)) {
 
                     // 异常并满足告警条件 则删除采样时间 采样次数

@@ -30,7 +30,7 @@ public class DeviceController extends BaseController {
 
 
     @PostMapping("/QueryProductList")
-    @ApiOperation(value = "查看所有产品列表", notes = "查看所有产品列表")
+    @ApiOperation(value = "查看云端所有产品列表", notes = "查看云端所有产品列表")
     public ResponseResult queryProductList(@RequestBody QueryProductListRequest request) throws Exception {
         request.setIotInstanceId(iotInstanceId);
         QueryProductListResponse queryProductListResponse =

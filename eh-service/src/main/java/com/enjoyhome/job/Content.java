@@ -4,6 +4,9 @@ import lombok.Data;
 
 import java.util.Map;
 
+/**
+ * AMQP消息body
+ */
 @Data
 public class Content {
 
@@ -29,8 +32,16 @@ public class Content {
     private String deviceName;
     private Map<String, Item> items;
 
+    /**
+     * "CurrentHumidity":{
+     * "value":75,
+     * "time":1699948275447
+     * },
+     */
     public class Item {
+        // 属性值
         private int value;
+        // 触发时间
         private long time;
 
         public int getValue() {

@@ -1,13 +1,9 @@
-
 package com.enjoyhome.service.impl;
 
 import cn.hutool.core.bean.BeanUtil;
 import cn.hutool.core.collection.CollUtil;
 import cn.hutool.core.date.LocalDateTimeUtil;
 import cn.hutool.json.JSONUtil;
-import com.github.pagehelper.Page;
-import com.github.pagehelper.PageHelper;
-import com.google.common.collect.Lists;
 import com.enjoyhome.base.PageResponse;
 import com.enjoyhome.dto.BillDto;
 import com.enjoyhome.dto.PrepaidRechargeRecordDto;
@@ -24,6 +20,9 @@ import com.enjoyhome.utils.ObjectUtil;
 import com.enjoyhome.utils.UserThreadLocal;
 import com.enjoyhome.vo.*;
 import com.enjoyhome.vo.retreat.*;
+import com.github.pagehelper.Page;
+import com.github.pagehelper.PageHelper;
+import com.google.common.collect.Lists;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.data.redis.core.StringRedisTemplate;
@@ -32,6 +31,7 @@ import org.springframework.transaction.annotation.Transactional;
 
 import javax.annotation.Resource;
 import java.math.BigDecimal;
+import java.math.RoundingMode;
 import java.time.LocalDateTime;
 import java.util.*;
 import java.util.stream.Collectors;
@@ -81,6 +81,7 @@ public class BillServiceImpl implements BillService {
 
     /**
      * 根据id删除账单
+     *
      * @param id 账单id
      * @return 删除结果
      */
@@ -91,6 +92,7 @@ public class BillServiceImpl implements BillService {
 
     /**
      * 生成月度账单
+     *
      * @param billDto 账单实体
      * @return 插入结果
      */
@@ -104,7 +106,7 @@ public class BillServiceImpl implements BillService {
         // 生成账单
 
         bill.setBillType(BillType.MONTH.getOrdinal());
-        bill.setTransactionStatus(BillStatus.UN_PAY.getOrdinal());
+        bill.setTransactionStatus(BillStatus.UN_PAY.getOrdinal());// 事务状态为未支付
         // 编号
         String zd = CodeUtil.generateCode("ZD", stringRedisTemplate, 5);
         bill.setBillNo(zd);
@@ -152,14 +154,16 @@ public class BillServiceImpl implements BillService {
         int i = bill.getBillEndTime().getDayOfMonth() - bill.getBillStartTime().getDayOfMonth() + 1;
         bill.setTotalDays(i);
         // 每月应付
-        BigDecimal cost = checkInConfig.getBedCost().add(checkInConfig.getOtherCost()).add(checkInConfig.getNursingCost())
-                .subtract(checkInConfig.getMedicalInsurancePayment()).subtract(checkInConfig.getGovernmentSubsidy());
+        BigDecimal cost =
+                checkInConfig.getBedCost().add(checkInConfig.getOtherCost()).add(checkInConfig.getNursingCost())
+                        .subtract(checkInConfig.getMedicalInsurancePayment()).subtract(checkInConfig.getGovernmentSubsidy());
 
         // 当月天数
         int days = lastDayOfMonth.getDayOfMonth() - firstDayOfMonth.getDayOfMonth() + 1;
         // 本期应付 = （每月应付 / 当月天数）* 共计天数
         // 首月和最后一个月需要扣减
-        BigDecimal currentCost = cost.divide(new BigDecimal(days), 60, BigDecimal.ROUND_HALF_UP).multiply(new BigDecimal(i));
+        BigDecimal currentCost =
+                cost.divide(new BigDecimal(days), 60, RoundingMode.HALF_UP).multiply(new BigDecimal(i));
         bill.setCurrentCost(currentCost);
         // 账单金额 = 本期应付 + 押金
         BigDecimal billAmount = currentCost.add(depositAmount);
@@ -199,6 +203,7 @@ public class BillServiceImpl implements BillService {
 
     /**
      * 生成费用账单
+     *
      * @param billDto 账单实体
      * @return 插入结果
      */
@@ -225,6 +230,7 @@ public class BillServiceImpl implements BillService {
 
     /**
      * 插入账单
+     *
      * @param record 账单实体
      * @return 插入结果
      */
@@ -241,7 +247,8 @@ public class BillServiceImpl implements BillService {
         Bill bill = billMapper.selectByPrimaryKey(id);
         BillVo billVo = BeanUtil.toBean(bill, BillVo.class);
         CheckInConfigVo checkInConfigVo = billVo.getCheckInConfigVo();
-        BigDecimal add = checkInConfigVo.getBedCost().add(checkInConfigVo.getNursingCost()).add(checkInConfigVo.getOtherCost());
+        BigDecimal add =
+                checkInConfigVo.getBedCost().add(checkInConfigVo.getNursingCost()).add(checkInConfigVo.getOtherCost());
         checkInConfigVo.setAdd1(add);
         BigDecimal add1 = checkInConfigVo.getGovernmentSubsidy().add(checkInConfigVo.getMedicalInsurancePayment());
         checkInConfigVo.setAdd2(add1);
@@ -250,7 +257,7 @@ public class BillServiceImpl implements BillService {
         BigDecimal subtract = billVo.getBillAmount().subtract(billVo.getPrepaidAmount());
 
         // 已支付 已关闭并且应付大于0的情况 展示其他支付方式的金额
-        if (billVo.getTransactionStatus().equals(1) || (billVo.getTransactionStatus().equals(2) && billVo.getPayableAmount().compareTo(new BigDecimal(0))== 0)) {
+        if (billVo.getTransactionStatus().equals(1) || (billVo.getTransactionStatus().equals(2) && billVo.getPayableAmount().compareTo(new BigDecimal(0)) == 0)) {
             billVo.setOtherAmount(subtract);
         }
 
@@ -258,7 +265,8 @@ public class BillServiceImpl implements BillService {
             Trading tradByTradingOrderNo = tradingService.findTradByTradingOrderNo(billVo.getTradingOrderNo());
             if (ObjectUtil.isNotEmpty(tradByTradingOrderNo)) {
                 RefundRecordVo refundRecordVo = new RefundRecordVo();
-                List<RefundRecord> listByTradingOrderNo = refundRecordService.findListByTradingOrderNo(bill.getTradingOrderNo());
+                List<RefundRecord> listByTradingOrderNo =
+                        refundRecordService.findListByTradingOrderNo(bill.getTradingOrderNo());
                 if (CollUtil.isNotEmpty(listByTradingOrderNo)) {
                     refundRecordVo = BeanUtil.toBean(listByTradingOrderNo.get(0), RefundRecordVo.class);
 
@@ -304,7 +312,8 @@ public class BillServiceImpl implements BillService {
 
     /**
      * 退住结算查询
-     * @param elderId 老人ID
+     *
+     * @param elderId       老人ID
      * @param localDateTime 实际退住时间
      * @param status
      * @return 退住结算详情
@@ -358,6 +367,7 @@ public class BillServiceImpl implements BillService {
 
     /**
      * 查询应退月度账单
+     *
      * @param elderId
      * @param localDateTime
      * @return
@@ -380,7 +390,8 @@ public class BillServiceImpl implements BillService {
                 int days = v.getTotalDays() - (localDateTime.getDayOfMonth() - v.getBillStartTime().getDayOfMonth());
                 // 本期应付 = （每月应付 / 费用天数）* 扣款天数
                 // 首月和最后一个月需要扣减
-                BigDecimal currentCost = v.getCurrentCost().divide(new BigDecimal(v.getTotalDays()), 60, BigDecimal.ROUND_HALF_UP).multiply(new BigDecimal(days));
+                BigDecimal currentCost = v.getCurrentCost().divide(new BigDecimal(v.getTotalDays()), 60,
+                        RoundingMode.HALF_UP).multiply(new BigDecimal(days));
                 dueBack.setAmount(currentCost);
                 dueBack.setRealDay(v.getTotalDays() - days);
                 dueBack.setDueBackDay(days);
@@ -396,13 +407,15 @@ public class BillServiceImpl implements BillService {
 
     /**
      * 查询欠费月度账单
+     *
      * @param elderId
      * @param localDateTime
      * @param dueBacks
      * @return
      */
     private List<Arrearage> getArrearage(Long elderId, LocalDateTime localDateTime, List<DueBack> dueBacks) {
-        List<Bill> arrearageBills = billMapper.selectArrearageByElder(elderId, BillStatus.UN_PAY.getOrdinal(), localDateTime);
+        List<Bill> arrearageBills = billMapper.selectArrearageByElder(elderId, BillStatus.UN_PAY.getOrdinal(),
+                localDateTime);
         return arrearageBills.stream().map(v -> {
             Arrearage arrearage = new Arrearage();
             arrearage.setCode(v.getBillNo());
@@ -415,7 +428,8 @@ public class BillServiceImpl implements BillService {
                 // 首月和最后一个月需要扣减
                 BigDecimal billAmount = v.getBillAmount(); // 总费 3000
                 // 当前月月费 1000多
-                BigDecimal currentCost = v.getCurrentCost().divide(new BigDecimal(v.getTotalDays()), 60, BigDecimal.ROUND_HALF_UP).multiply(new BigDecimal(days));
+                BigDecimal currentCost = v.getCurrentCost().divide(new BigDecimal(v.getTotalDays()), 60,
+                        RoundingMode.HALF_UP).multiply(new BigDecimal(days));
                 //当前月月费 - 已付
                 arrearage.setAmount(currentCost.subtract(v.getPrepaidAmount()));
                 if (arrearage.getAmount().compareTo(new BigDecimal(0)) < 0) {
@@ -433,8 +447,7 @@ public class BillServiceImpl implements BillService {
                     dueBacks.add(dueBack);
                     return null;
                 }
-            }
-            else {
+            } else {
                 arrearage.setAmount(v.getCurrentCost().subtract(v.getPrepaidAmount()));
                 // 首月和最后一个月需要扣减
                 BigDecimal billAmount = v.getBillAmount(); // 总费 3000
@@ -477,9 +490,11 @@ public class BillServiceImpl implements BillService {
             BigDecimal prepaid = balance.getPrepaidBalance();
         };
 
-        Bill bill0 = billMapper.selectDepositByElderAndStatus(retreatClearingBillDto.getElderId(), BillStatus.PAY.getOrdinal());
+        Bill bill0 = billMapper.selectDepositByElderAndStatus(retreatClearingBillDto.getElderId(),
+                BillStatus.PAY.getOrdinal());
         if (ObjectUtil.isNotEmpty(bill0)) {
-            ref.prepaid = ref.prepaid.add(balance.getDepositAmount()).subtract(retreatClearingBillDto.getDepositDeductions());
+            ref.prepaid =
+                    ref.prepaid.add(balance.getDepositAmount()).subtract(retreatClearingBillDto.getDepositDeductions());
             balance.setDepositAmount(new BigDecimal(0));
             balance.setPrepaidBalance(ref.prepaid);
             balanceService.save(balance);
@@ -502,11 +517,13 @@ public class BillServiceImpl implements BillService {
 
     /**
      * 预交款抵扣欠费月度账单
+     *
      * @param retreatClearingBillDto 清算参数
-     * @param balance 余额
+     * @param balance                余额
      */
     private void prepaidAmountToArrearage(RetreatClearingBillDto retreatClearingBillDto, Balance balance) {
-        List<Bill> arrearageBills = billMapper.selectArrearageByElder(retreatClearingBillDto.getElderId(), BillStatus.UN_PAY.getOrdinal(), retreatClearingBillDto.getLocalDateTime());
+        List<Bill> arrearageBills = billMapper.selectArrearageByElder(retreatClearingBillDto.getElderId(),
+                BillStatus.UN_PAY.getOrdinal(), retreatClearingBillDto.getLocalDateTime());
         ArrayList<Trading> tradings = Lists.newArrayList();
         ArrayList<RefundRecord> refundRecords = Lists.newArrayList();
         arrearageBills.forEach(bill -> {
@@ -517,11 +534,13 @@ public class BillServiceImpl implements BillService {
             BigDecimal billAmount = bill.getPayableAmount();
             if (bill.getBillType().equals(0) && bill.getBillStartTime().isBefore(retreatClearingBillDto.getLocalDateTime()) && bill.getBillEndTime().isAfter(retreatClearingBillDto.getLocalDateTime())) {
                 // 扣款天数
-                int days = retreatClearingBillDto.getLocalDateTime().getDayOfMonth() - bill.getBillStartTime().getDayOfMonth();
+                int days =
+                        retreatClearingBillDto.getLocalDateTime().getDayOfMonth() - bill.getBillStartTime().getDayOfMonth();
                 // 本期应付 = （每月应付 / 费用天数）* 扣款天数
                 // 首月和最后一个月需要扣减
 
-                BigDecimal currentCost = bill.getCurrentCost().divide(new BigDecimal(bill.getTotalDays()), 60, BigDecimal.ROUND_HALF_UP).multiply(new BigDecimal(days));
+                BigDecimal currentCost = bill.getCurrentCost().divide(new BigDecimal(bill.getTotalDays()), 60,
+                        RoundingMode.HALF_UP).multiply(new BigDecimal(days));
                 bill.setCurrentCost(currentCost);
                 BigDecimal oldCost = bill.getBillAmount();
                 bill.setBillAmount(currentCost);
@@ -532,7 +551,7 @@ public class BillServiceImpl implements BillService {
                 BigDecimal paydAmount = oldCost.subtract(billAmount);  // 已经付了的部分
                 billAmount = currentCost.subtract(paydAmount); // 当前应付
 
-                if (billAmount.compareTo(new BigDecimal(0))  < 0 ) {
+                if (billAmount.compareTo(new BigDecimal(0)) < 0) {
                     // 增加预交款
                     balance.setPrepaidBalance(balance.getPrepaidBalance().add(paydAmount.subtract(currentCost)));
                     bill.setPayableAmount(new BigDecimal(0));
@@ -552,14 +571,13 @@ public class BillServiceImpl implements BillService {
                     refundRecords.add(refundRecord);
                     return;
                 }
-            }
-            else {
+            } else {
                 // 扣减后 需要重新计算已经付了的部分
                 BigDecimal oldCost = bill.getBillAmount();
                 BigDecimal paydAmount = oldCost.subtract(billAmount);  // 已经付了的部分
                 billAmount = bill.getCurrentCost().subtract(paydAmount); // 当前应付
                 bill.setBillAmount(bill.getCurrentCost());
-                if (billAmount.compareTo(new BigDecimal(0))  < 0 ) {
+                if (billAmount.compareTo(new BigDecimal(0)) < 0) {
                     // 增加预交款
                     balance.setPrepaidBalance(balance.getPrepaidBalance().add(paydAmount.subtract(bill.getCurrentCost())));
                     bill.setPayableAmount(new BigDecimal(0));
@@ -639,14 +657,18 @@ public class BillServiceImpl implements BillService {
 
     /**
      * 应退月度账单转预交款
+     *
      * @param retreatClearingBillDto 清算参数
-     * @param balance 余额
+     * @param balance                余额
      */
     private void dueBackToPrepaidAmount(RetreatClearingBillDto retreatClearingBillDto, Balance balance) {
 
-        Map<String, BigDecimal> decimalMap = retreatClearingBillDto.getDueBackList().stream().collect(Collectors.toMap(DueBack::getCode, v -> v.getAmount().subtract(v.getRealAmount())));
+        Map<String, BigDecimal> decimalMap =
+                retreatClearingBillDto.getDueBackList().stream().collect(Collectors.toMap(DueBack::getCode,
+                        v -> v.getAmount().subtract(v.getRealAmount())));
 
-        List<Bill> dueBackBills = billMapper.selectDueBackByElder(retreatClearingBillDto.getElderId(), BillStatus.PAY.getOrdinal(), retreatClearingBillDto.getLocalDateTime());
+        List<Bill> dueBackBills = billMapper.selectDueBackByElder(retreatClearingBillDto.getElderId(),
+                BillStatus.PAY.getOrdinal(), retreatClearingBillDto.getLocalDateTime());
         var ref = new Object() {
             BigDecimal prepaid = balance.getPrepaidBalance();
         };
@@ -661,10 +683,12 @@ public class BillServiceImpl implements BillService {
             BigDecimal old = bill.getCurrentCost();
             if (bill.getBillStartTime().isBefore(retreatClearingBillDto.getLocalDateTime()) && bill.getBillEndTime().isAfter(retreatClearingBillDto.getLocalDateTime())) {
                 // 入住天数
-                int days = (retreatClearingBillDto.getLocalDateTime().getDayOfMonth() - bill.getBillStartTime().getDayOfMonth());
+                int days =
+                        (retreatClearingBillDto.getLocalDateTime().getDayOfMonth() - bill.getBillStartTime().getDayOfMonth());
                 // 本期应付 = （每月应付 / 费用天数）* 扣款天数
                 // 首月和最后一个月需要扣减
-                BigDecimal currentCost = bill.getCurrentCost().divide(new BigDecimal(bill.getTotalDays()), 60, BigDecimal.ROUND_HALF_UP).multiply(new BigDecimal(days));
+                BigDecimal currentCost = bill.getCurrentCost().divide(new BigDecimal(bill.getTotalDays()), 60,
+                        RoundingMode.HALF_UP).multiply(new BigDecimal(days));
                 bill.setCurrentCost(currentCost);
 
                 bill.setBillAmount(bill.getDepositAmount().add(currentCost));
@@ -672,7 +696,7 @@ public class BillServiceImpl implements BillService {
                 bill.setPayableAmount(new BigDecimal(0));
 
                 refundRecord.setMemo(days + ""); // 实际天数
-                refundRecord.setRefundMsg(bill.getTotalDays() - days  + ""); // 退款天数
+                refundRecord.setRefundMsg(bill.getTotalDays() - days + ""); // 退款天数
                 bill.setTotalDays(days);
 
             } else {
@@ -703,7 +727,7 @@ public class BillServiceImpl implements BillService {
             } else {
                 refundAmount = old.subtract(bill.getCurrentCost());
             }
-            if (decimalMap.keySet().contains(bill.getBillNo())) {
+            if (decimalMap.containsKey(bill.getBillNo())) {
                 BigDecimal subtract = refundAmount.subtract(decimalMap.get(bill.getBillNo()));
                 ref.prepaid = ref.prepaid.add(subtract);
                 refundRecord.setRefundAmount(subtract);
@@ -711,7 +735,7 @@ public class BillServiceImpl implements BillService {
                 ref.prepaid = ref.prepaid.add(refundAmount);
                 refundRecord.setRefundAmount(refundAmount);
             }
-           refundRecords.add(refundRecord);
+            refundRecords.add(refundRecord);
         });
         balance.setPrepaidBalance(ref.prepaid);
         balanceService.save(balance);
@@ -724,47 +748,53 @@ public class BillServiceImpl implements BillService {
 
     /**
      * 分页查询账单
-     * @param billNo 账单编号
-     * @param elderName 老人姓名
+     *
+     * @param billNo      账单编号
+     * @param elderName   老人姓名
      * @param elderIdCard 老人身份证号
-     * @param startTime 账单月份
+     * @param startTime   账单月份
      * @param endTime
-     * @param pageNum 页码
-     * @param pageSize 每页数量
+     * @param pageNum     页码
+     * @param pageSize    每页数量
      * @return 分页结果
      */
     @Override
-    public PageResponse<BillVo> getBillPage(String billNo, String elderName, String elderIdCard, LocalDateTime startTime, LocalDateTime endTime, Integer transactionStatus, Long elderId, Integer pageNum, Integer pageSize) {
+    public PageResponse<BillVo> getBillPage(String billNo, String elderName, String elderIdCard,
+                                            LocalDateTime startTime, LocalDateTime endTime, Integer transactionStatus
+            , Long elderId, Integer pageNum, Integer pageSize) {
         PageHelper.startPage(pageNum, pageSize);
         List<Long> elderIds = null;
         if (ObjectUtil.isNotEmpty(elderId)) {
-            elderIds = Arrays.asList(elderId);
+            elderIds = Collections.singletonList(elderId);
         } else {
             Long userId = UserThreadLocal.getUserId();
             if (ObjectUtil.isNotEmpty(userId)) {
                 List<MemberElderVo> memberElderVos = memberElderService.listByMemberId(userId);
-                elderIds = memberElderVos.stream().map(MemberElderVo::getElderId).distinct().collect(Collectors.toList());
+                elderIds =
+                        memberElderVos.stream().map(MemberElderVo::getElderId).distinct().collect(Collectors.toList());
                 if (CollUtil.isEmpty(elderIds)) {
                     return PageResponse.getInstance();
                 }
             }
         }
-        Page<BillVo> page = billMapper.page(billNo, elderName, elderIdCard, startTime, endTime, transactionStatus, elderIds);
+        Page<BillVo> page = billMapper.page(billNo, elderName, elderIdCard, startTime, endTime, transactionStatus,
+                elderIds);
         return PageResponse.of(page, BillVo.class);
     }
 
     /**
      * 查询欠费账单
-     * @param bedNo 床位号
+     *
+     * @param bedNo     床位号
      * @param elderName 老人姓名
-     * @param pageNum 页码
-     * @param pageSize 每页数量
+     * @param pageNum   页码
+     * @param pageSize  每页数量
      * @return 分页结果
      */
     @Override
     public PageResponse<BillVo> arrears(String bedNo, String elderName, Integer pageNum, Integer pageSize) {
         PageHelper.startPage(pageNum, pageSize);
-        Page<BillVo> page =  billMapper.arrears(bedNo, elderName);
+        Page<BillVo> page = billMapper.arrears(bedNo, elderName);
         return PageResponse.of(page, BillVo.class);
     }
 
@@ -776,6 +806,7 @@ public class BillServiceImpl implements BillService {
 
     /**
      * 保存预交款充值记录
+     *
      * @param dto 预交款充值记录实体
      */
     @Transactional
@@ -801,7 +832,8 @@ public class BillServiceImpl implements BillService {
             Bill lastByElder = billMapper.selectLastByElder(dto.getElderId());
             // 抵扣账单
             // 预交款抵扣欠费账单
-            List<Bill> arrearageBills = billMapper.selectArrearageByElder(dto.getElderId(), BillStatus.UN_PAY.getOrdinal(), lastByElder.getBillEndTime());
+            List<Bill> arrearageBills = billMapper.selectArrearageByElder(dto.getElderId(),
+                    BillStatus.UN_PAY.getOrdinal(), lastByElder.getBillEndTime());
 
             ArrayList<Trading> tradings = Lists.newArrayList();
             arrearageBills.forEach(bill -> {
@@ -871,21 +903,24 @@ public class BillServiceImpl implements BillService {
 
     /**
      * 分页查询预交款充值记录
-     * @param bedNo 床位号
+     *
+     * @param bedNo     床位号
      * @param elderName 老人姓名
-     * @param pageNum 页码
-     * @param pageSize 每页数量
+     * @param pageNum   页码
+     * @param pageSize  每页数量
      * @return 分页结果
      */
     @Override
-    public PageResponse<PrepaidRechargeRecordVo> prepaidRechargeRecordPage(String bedNo, String elderName, Integer pageNum, Integer pageSize) {
+    public PageResponse<PrepaidRechargeRecordVo> prepaidRechargeRecordPage(String bedNo, String elderName,
+                                                                           Integer pageNum, Integer pageSize) {
         PageHelper.startPage(pageNum, pageSize);
-        Page<PrepaidRechargeRecord> page =  prepaidRechargeRecordMapper.prepaidRechargeRecordPage(bedNo, elderName);
+        Page<PrepaidRechargeRecord> page = prepaidRechargeRecordMapper.prepaidRechargeRecordPage(bedNo, elderName);
         return PageResponse.of(page, PrepaidRechargeRecordVo.class);
     }
 
     /**
      * 账单线下支付记录
+     *
      * @param tradingVo
      */
     @Override
@@ -908,6 +943,7 @@ public class BillServiceImpl implements BillService {
 
     /**
      * 线上支付
+     *
      * @param billDto
      */
     @Override
@@ -943,6 +979,7 @@ public class BillServiceImpl implements BillService {
 
     /**
      * 线上支付
+     *
      * @param tradingOrderNos 交易号
      */
     @Override
@@ -957,11 +994,13 @@ public class BillServiceImpl implements BillService {
 
     /**
      * 线上退款
+     *
      * @param tradingOrderNos 交易号
      */
     @Override
     public void refundOrder(List<Long> tradingOrderNos) {
-        billMapper.obatchUpdateByTradingOrderNoSelective(tradingOrderNos, BillStatus.CLOSE.getOrdinal(), new BigDecimal(0));
+        billMapper.obatchUpdateByTradingOrderNoSelective(tradingOrderNos, BillStatus.CLOSE.getOrdinal(),
+                new BigDecimal(0));
     }
 
 }

@@ -4,8 +4,6 @@ import cn.hutool.core.bean.BeanUtil;
 import cn.hutool.core.date.LocalDateTimeUtil;
 import cn.hutool.core.util.ObjectUtil;
 import com.alibaba.fastjson.JSON;
-import com.github.pagehelper.Page;
-import com.github.pagehelper.PageHelper;
 import com.enjoyhome.base.PageResponse;
 import com.enjoyhome.constant.AccraditationRecordConstant;
 import com.enjoyhome.dto.BedDto;
@@ -24,6 +22,8 @@ import com.enjoyhome.utils.UserThreadLocal;
 import com.enjoyhome.vo.ContractVo;
 import com.enjoyhome.vo.RecoreVo;
 import com.enjoyhome.vo.retreat.ElderVo;
+import com.github.pagehelper.Page;
+import com.github.pagehelper.PageHelper;
 import org.springframework.beans.BeanUtils;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Service;
@@ -79,6 +79,7 @@ public class ContractServiceImpl implements ContractService {
 
     /**
      * 根据id查询合同
+     *
      * @param id 合同id
      * @return 合同实体类
      */
@@ -90,6 +91,7 @@ public class ContractServiceImpl implements ContractService {
 
     /**
      * 添加合同
+     *
      * @param contractDto 合同dto
      * @return 添加结果
      */
@@ -118,7 +120,7 @@ public class ContractServiceImpl implements ContractService {
         // 老人
         ElderDto elderDto = new ElderDto();
         elderDto.setId(checkInConfig.getElderId());
-        elderDto.setStatus(1);
+        elderDto.setStatus(1);//已入住
         elderService.updateByPrimaryKeySelective(elderDto, false);
 
         // 余额
@@ -130,10 +132,10 @@ public class ContractServiceImpl implements ContractService {
         balance.setDepositAmount(checkInConfig.getDepositAmount());
         Balance balance1 = balanceMapper.selectByElderId(elderDto.getId());
         if (ObjectUtil.isNotEmpty(balance1)) {
+            // 删除旧的余额
             balanceMapper.deleteByPrimaryKey(balance1.getId());
         }
         balanceMapper.insert(balance);
-
 
 
         // 床位状态
@@ -158,7 +160,8 @@ public class ContractServiceImpl implements ContractService {
         billService.createMonthBill(billDto);
         // 生成护理任务 创建时间是签约时间
         nursingTaskService.createMonthTask(elderVo, contract.getSignDate(), null);
-        actFlowCommService.completeProcess("", contractDto.getTaskId(), user.getId().toString(), 1, CheckIn.Status.FINISHED.getCode());
+        actFlowCommService.completeProcess("", contractDto.getTaskId(), user.getId().toString(), 1,
+                CheckIn.Status.FINISHED.getCode());
 
 
         RecoreVo recoreVo = getRecoreVo(
@@ -178,16 +181,18 @@ public class ContractServiceImpl implements ContractService {
 
     /**
      * 获取操作记录数据
-     * @param checkIn  入住对象
-     * @param user  当前登录用户
-     * @param status  审核状态
-     * @param option  操作意见
-     * @param step    当前步骤
-     * @param nextStep   下一步说明
-     * @param nextAssignee  下一个审核人
+     *
+     * @param checkIn      入住对象
+     * @param user         当前登录用户
+     * @param status       审核状态
+     * @param option       操作意见
+     * @param step         当前步骤
+     * @param nextStep     下一步说明
+     * @param nextAssignee 下一个审核人
      * @return
      */
-    private RecoreVo getRecoreVo(CheckIn checkIn,User user,Integer status,String option,String step,String nextStep,Long nextAssignee,Integer handleType){
+    private RecoreVo getRecoreVo(CheckIn checkIn, User user, Integer status, String option, String step,
+                                 String nextStep, Long nextAssignee, Integer handleType) {
         RecoreVo recoreVo = new RecoreVo();
         recoreVo.setId(checkIn.getId());
         recoreVo.setType(AccraditationRecordConstant.RECORD_TYPE_CHECK_IN);
@@ -205,6 +210,7 @@ public class ContractServiceImpl implements ContractService {
 
     /**
      * 更新合同
+     *
      * @param contractDto 合同dto
      * @return 更新结果
      */
@@ -217,6 +223,7 @@ public class ContractServiceImpl implements ContractService {
 
     /**
      * 根据id删除合同
+     *
      * @param id 合同id
      * @return 删除结果
      */
@@ -228,13 +235,13 @@ public class ContractServiceImpl implements ContractService {
     /**
      * 分页查询合同信息
      *
-     * @param pageNum 页码
-     * @param pageSize 每页大小
+     * @param pageNum    页码
+     * @param pageSize   每页大小
      * @param contractNo 合同编号
-     * @param elderName 老人姓名
-     * @param status 合同状态
-     * @param startTime 开始时间
-     * @param endTime 结束时间
+     * @param elderName  老人姓名
+     * @param status     合同状态
+     * @param startTime  开始时间
+     * @param endTime    结束时间
      * @return 分页结果
      */
     @Override
@@ -251,7 +258,8 @@ public class ContractServiceImpl implements ContractService {
                 phone = byId.getPhone();
             }
         }
-        Page<List<Contract>> page = contractMapper.selectByPage(phone, contractNo, elderName, status, startTime, endTime);
+        Page<List<Contract>> page = contractMapper.selectByPage(phone, contractNo, elderName, status, startTime,
+                endTime);
         return PageResponse.of(page, ContractVo.class);
     }
 

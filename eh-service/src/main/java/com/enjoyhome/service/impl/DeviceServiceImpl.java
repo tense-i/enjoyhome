@@ -38,7 +38,9 @@ public class DeviceServiceImpl implements DeviceService {
     public void registerDevice(DeviceDto deviceDto) throws Exception {
         RegisterDeviceRequest request = deviceDto.getRegisterDeviceRequest();
         request.setIotInstanceId(iotInstanceId);
+        // 云端注册请求
         RegisterDeviceResponse response = client.registerDevice(request);
+
         if (Boolean.TRUE.equals(response.getBody().getSuccess())) {
             // 保存位置
             Device device = BeanUtil.toBean(deviceDto, Device.class);
@@ -46,10 +48,12 @@ public class DeviceServiceImpl implements DeviceService {
             device.setProductId(request.getProductKey());
             device.setNoteName(request.getNickname());
 
+
             QueryProductRequest productRequest = new QueryProductRequest();
             productRequest.setIotInstanceId(iotInstanceId);
             productRequest.setProductKey(request.getProductKey());
             QueryProductResponse queryProductResponse = client.queryProduct(productRequest);
+            // 产品名称
             String productName = queryProductResponse.getBody().getData().getProductName();
             device.setProductName(productName);
             // 保存位置为老人
